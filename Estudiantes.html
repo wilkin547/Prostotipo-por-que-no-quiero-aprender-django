@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNPHU | Mi Tesis - Entorno de Trabajo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --unphu-green: #006837;
+            --unphu-green-dark: #004d29;
+            --bg-canvas: #f3f4f6; /* Gris un poco más oscuro para el fondo del visor */
+            --bg-panels: #ffffff;
+            --text-main: #1f2937;
+            --border-color: #e5e7eb;
+        }
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            overflow: hidden; /* Evitar scroll en toda la página, se manejará por paneles */
+        }
+        .bg-unphu { background-color: var(--unphu-green); }
+        .text-unphu { color: var(--unphu-green); }
+        .border-unphu { border-color: var(--unphu-green); }
+        
+        /* Estilos Flat Design */
+        .no-shadow { box-shadow: none !important; }
+        
+        /* Layout de tres paneles */
+        .workspace-container {
+            display: flex;
+            height: calc(100vh - 64px); /* Restar la altura del navbar */
+        }
+        .panel {
+            background-color: var(--bg-panels);
+            overflow-y: auto;
+        }
+        .panel-left {
+            width: 280px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-canvas);
+        }
+        .panel-right {
+            width: 320px;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estilos específicos de elementos */
+        .version-item {
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .version-item:hover { background-color: #f9fafb; }
+        .version-active {
+            background-color: #f0fdf4 !important;
+            border-left: 4px solid var(--unphu-green);
+        }
+        .comment-card {
+            border: 1px solid var(--border-color);
+            background-color: #f9fafb;
+        }
+        
+        /* Visor PDF Simulado */
+        .pdf-viewer-container {
+            flex: 1;
+            margin: 1.5rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .pdf-page {
+            width: 100%;
+            max-width: 800px;
+            min-height: 1000px;
+            background: white;
+            border: 1px solid #d1d5db;
+        }
+
+        /* Scrollbar personalizado flat */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navegación Superior (Top Bar) -->
+    <nav class="bg-unphu text-white px-6 h-16 flex justify-between items-center no-shadow shrink-0 z-50">
+        <div class="flex items-center space-x-4">
+            <div class="font-bold text-xl tracking-tight uppercase">UNPHU | <span class="font-light italic">Tesis</span></div>
+            <div class="hidden md:flex items-center ml-4 px-4 border-l border-green-700">
+                <span class="text-xs bg-green-800 px-2 py-1 uppercase font-bold tracking-widest">Panel del Estudiante</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-6 text-sm">
+            <div class="text-right hidden md:block">
+                <p class="font-bold leading-tight">Juan Alberto Pérez</p>
+                <p class="text-[10px] text-green-200 font-mono">18-0432 | Ing. de Sistemas</p>
+            </div>
+            <button class="border border-white px-4 py-1 hover:bg-white hover:text-green-900 transition font-bold uppercase text-xs">CERRAR SESIÓN</button>
+        </div>
+    </nav>
+
+    <!-- Entorno de Trabajo (Tres Paneles) -->
+    <main class="workspace-container">
+        
+        <!-- PANEL IZQUIERDO: Versiones -->
+        <aside class="panel panel-left relative">
+            <div class="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <h2 class="font-bold text-gray-800 uppercase tracking-wider text-xs">Historial de Versiones</h2>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto">
+                <!-- Versión Actual -->
+                <div class="version-item version-active p-4 flex flex-col gap-2" onclick="changeVersion(this)">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-sm text-gray-900">Versión 2.0</span>
+                        <span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-1 font-bold uppercase">En Revisión</span>
+                    </div>
+                    <span class="text-xs font-mono text-gray-500">Subido el: 14/12/2024</span>
+                    <span class="text-[10px] text-gray-400">Anexos y Planos v2.pdf</span>
+                </div>
+
+                <!-- Versión Anterior -->
+                <div class="version-item p-4 flex flex-col gap-2" onclick="changeVersion(this)">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-sm text-gray-900">Versión 1.0</span>
+                        <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 font-bold uppercase">Revisada</span>
+                    </div>
+                    <span class="text-xs font-mono text-gray-500">Subido el: 10/12/2024</span>
+                    <span class="text-[10px] text-gray-400">Tesis Completa v1.docx</span>
+                </div>
+            </div>
+
+            <!-- Botón de Acción -->
+            <div class="p-4 border-t border-gray-200 sticky bottom-0 bg-white">
+                <button class="w-full bg-unphu text-white py-3 text-xs font-bold uppercase hover:bg-green-800 transition flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Subir Nueva Versión
+                </button>
+            </div>
+        </aside>
+
+        <!-- PANEL CENTRAL: Visor de Tesis -->
+        <section class="panel-center">
+            <!-- Barra de herramientas del documento -->
+            <div class="bg-white border-b border-gray-200 h-14 px-6 flex justify-between items-center shrink-0">
+                <div>
+                    <h1 class="font-bold text-gray-800">Optimización de Redes Neuronales</h1>
+                    <p class="text-[10px] uppercase font-bold text-gray-400">Código: T-2023-001 | Asesor: Ing. Roberto Gómez</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="border border-gray-300 bg-white text-gray-700 px-3 py-1 text-xs font-bold uppercase hover:bg-gray-50 transition" title="Descargar Archivo Original">
+                        Descargar PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visor del PDF (Simulado) -->
+            <div class="pdf-viewer-container">
+                <div class="pdf-page p-12 relative no-shadow">
+                    <!-- Contenido Simulado del PDF -->
+                    <div class="text-center mb-16 mt-10">
+                        <h2 class="text-2xl font-bold uppercase mb-4 text-gray-800">Capítulo 2: Marco Metodológico</h2>
+                        <div class="w-16 h-1 bg-unphu mx-auto mb-10"></div>
+                    </div>
+                    
+                    <div class="space-y-6 text-gray-700 text-justify leading-relaxed font-serif">
+                        <p>2.1. Diseño de la Investigación</p>
+                        <p>
+                            La presente investigación adopta un enfoque cuantitativo con un diseño no experimental y de corte transversal. El propósito central es analizar la eficiencia de los algoritmos de optimización aplicados a redes neuronales convolucionales (CNN) en dispositivos de recursos limitados (Edge Computing).
+                        </p>
+                        <p>
+                            Al no manipular deliberadamente las variables independientes, se observarán los fenómenos tal como se dan en su contexto natural para posteriormente analizarlos. El estudio es de tipo explicativo, ya que busca establecer las causas de las mejoras en el rendimiento computacional al aplicar técnicas de cuantización y poda de pesos.
+                        </p>
+                        <p class="bg-yellow-100 p-1 border-l-2 border-yellow-400" title="Comentario C-2024-01 asociado a este párrafo">
+                            2.2. Población y Muestra
+                        </p>
+                        <p class="bg-yellow-100 p-1 border-l-2 border-yellow-400" title="Comentario C-2024-01 asociado a este párrafo">
+                            Para validar los modelos optimizados, se utilizarán conjuntos de datos públicos estandarizados como ImageNet y CIFAR-10. La validación cruzada se realizará utilizando un K-fold de 5 iteraciones.
+                        </p>
+                        <p>2.3. Instrumentos de Recolección de Datos</p>
+                        <p>
+                            La recolección de métricas de rendimiento (latencia, uso de memoria RAM, y precisión de inferencia) se realizará mediante scripts automatizados desarrollados en Python utilizando la librería TensorFlow Lite y PyTorch Mobile. Las mediciones se ejecutarán en una placa Raspberry Pi 4 Model B (4GB RAM).
+                        </p>
+                        <!-- Más texto simulado... -->
+                        <div class="mt-20 border-t border-gray-300 pt-4">
+                            <p class="text-xs text-gray-400 text-center">Página 14 de 120</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANEL DERECHO: Comentarios -->
+        <aside class="panel panel-right">
+            <div class="p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
+                <h2 class="font-bold text-gray-800 uppercase tracking-wider text-xs">Comentarios del Asesor</h2>
+                <span class="bg-gray-100 text-gray-600 px-2 py-1 text-[10px] font-bold rounded-full">2</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                
+                <!-- Tarjeta de Comentario 1 -->
+                <div class="comment-card p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-unphu text-white flex items-center justify-center text-xs font-bold">RG</div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 leading-tight">Ing. Roberto Gómez</p>
+                                <p class="text-[9px] font-mono text-gray-500">C-2024-01 | 15/12/2024 14:30</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-700 leading-snug">
+                        <p>La sección de metodología (2.2) no especifica el tamaño de la muestra ni el método de muestreo utilizado de forma explícita para la fase de validación de usuarios finales, solo menciona los datasets.</p>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+                        <span class="text-[10px] font-bold uppercase text-red-600">Requiere Corrección</span>
+                        <button class="text-unphu text-xs font-bold hover:underline">Marcar Resuelto</button>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Comentario 2 -->
+                <div class="comment-card p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-unphu text-white flex items-center justify-center text-xs font-bold">RG</div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 leading-tight">Ing. Roberto Gómez</p>
+                                <p class="text-[9px] font-mono text-gray-500">C-2024-02 | 16/12/2024 09:15</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-700 leading-snug">
+                        <p>Se recomienda ampliar las fuentes bibliográficas de la introducción con artículos de los últimos 5 años referentes a Edge AI.</p>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+                        <span class="text-[10px] font-bold uppercase text-orange-500">Sugerencia</span>
+                        <button class="text-gray-400 text-xs font-bold hover:text-gray-600 transition cursor-not-allowed">Resuelto</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Botón de Comunicación (Opcional para el estudiante) -->
+            <div class="p-4 border-t border-gray-200 sticky bottom-0 bg-gray-50">
+                <button class="w-full border-2 border-dashed border-gray-300 text-gray-500 py-2 text-xs font-bold uppercase hover:bg-gray-100 transition hover:border-gray-400">
+                    Añadir Nota Privada
+                </button>
+            </div>
+        </aside>
+
+    </main>
+
+    <script>
+        // Funcionalidad simple para cambiar la apariencia de la versión seleccionada
+        function changeVersion(element) {
+            // Remover la clase activa de todos los elementos
+            const items = document.querySelectorAll('.version-item');
+            items.forEach(item => {
+                item.classList.remove('version-active');
+            });
+            
+            // Añadir la clase activa al elemento clicado
+            element.classList.add('version-active');
+            
+            // Simular carga de documento
+            console.log("Cargando versión del documento...");
+        }
+    </script>
+</body>
+</html>

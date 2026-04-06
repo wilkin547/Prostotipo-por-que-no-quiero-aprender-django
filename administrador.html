@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNPHU | Sistema de Gestión de Tesis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --unphu-green: #006837;
+            --unphu-green-dark: #004d29;
+            --bg-canvas: #f9fafb;
+            --text-main: #1f2937;
+        }
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+        }
+        .bg-unphu { background-color: var(--unphu-green); }
+        .text-unphu { color: var(--unphu-green); }
+        .border-unphu { border-color: var(--unphu-green); }
+        
+        /* Estilos Flat Design */
+        .no-shadow { box-shadow: none !important; }
+        .flat-card {
+            border: 1px solid #e5e7eb;
+            background: white;
+        }
+        .nav-link-active {
+            background-color: #f3f4f6;
+            color: var(--unphu-green);
+            border-left: 4px solid var(--unphu-green);
+        }
+        .status-badge {
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+        }
+        .input-flat {
+            border: 1px solid #d1d5db;
+            padding: 0.6rem;
+            font-size: 0.875rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .input-flat:focus {
+            outline: none;
+            border-color: var(--unphu-green);
+        }
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Modal: Agregar Estudiante -->
+    <div id="modal-estudiante" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Nuevo Perfil de Estudiante</h2>
+                <button onclick="closeModal('estudiante')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Estudiante registrado con éxito'); closeModal('estudiante');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="matricula">Matrícula</label>
+                        <input type="text" id="matricula" placeholder="ej. 18-0432" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="telefono-est">Número de Teléfono</label>
+                        <input type="tel" id="telefono-est" placeholder="809-000-0000" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="nombre-est">Nombre Completo</label>
+                    <input type="text" id="nombre-est" placeholder="Nombre Apellido" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="correo-est">Correo Electrónico</label>
+                    <input type="email" id="correo-est" placeholder="ejemplo@unphu.edu.do" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="carrera">Carrera</label>
+                    <select id="carrera" class="input-flat" required>
+                        <option value="">Seleccione una carrera...</option>
+                        <option value="sistemas">Ingeniería de Sistemas</option>
+                        <option value="arquitectura">Arquitectura</option>
+                        <option value="derecho">Derecho</option>
+                        <option value="medicina">Medicina</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="password-est">Contraseña Temporal</label>
+                    <input type="password" id="password-est" placeholder="••••••••" class="input-flat" required>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('estudiante')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar Estudiante</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Estudiante -->
+    <div id="modal-editar-estudiante" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Perfil de Estudiante</h2>
+                <button onclick="closeModal('editar-estudiante')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Estudiante actualizado con éxito'); closeModal('editar-estudiante');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="matricula-edit">Matrícula</label>
+                        <input type="text" id="matricula-edit" value="18-0432" class="input-flat" required readonly title="La matrícula no se puede cambiar">
+                    </div>
+                    <div>
+                        <label for="telefono-est-edit">Número de Teléfono</label>
+                        <input type="tel" id="telefono-est-edit" value="809-555-0123" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="nombre-est-edit">Nombre Completo</label>
+                    <input type="text" id="nombre-est-edit" value="Juan Alberto Pérez" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="correo-est-edit">Correo Electrónico</label>
+                    <input type="email" id="correo-est-edit" value="18-0432@unphu.edu.do" class="input-flat" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="carrera-edit">Carrera</label>
+                        <select id="carrera-edit" class="input-flat" required>
+                            <option value="sistemas" selected>Ingeniería de Sistemas</option>
+                            <option value="arquitectura">Arquitectura</option>
+                            <option value="derecho">Derecho</option>
+                            <option value="medicina">Medicina</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="estatus-edit">Estatus</label>
+                        <select id="estatus-edit" class="input-flat" required>
+                            <option value="activo" selected>Activo</option>
+                            <option value="tesis">En Tesis</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-estudiante')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar Estudiante</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Asesor -->
+    <div id="modal-asesor" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Registro de Asesor / Jurado</h2>
+                <button onclick="closeModal('asesor')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Asesor registrado con éxito'); closeModal('asesor');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id-empleado">Código de Empleado (ID)</label>
+                        <input type="text" id="id-empleado" placeholder="ej. EMP-2024" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="telefono-ase">Número de Teléfono</label>
+                        <input type="tel" id="telefono-ase" placeholder="829-000-0000" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="nombre-ase">Nombre Completo</label>
+                    <input type="text" id="nombre-ase" placeholder="Nombre Apellido" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="correo-ase">Correo Electrónico Institucional</label>
+                    <input type="email" id="correo-ase" placeholder="asesor@unphu.edu.do" class="input-flat" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="facultad">Facultad</label>
+                        <select id="facultad" class="input-flat" required onchange="updateEspecialidades('facultad', 'especialidad')">
+                            <option value="">Seleccione Facultad...</option>
+                            <option value="fct">Ciencias y Tecnología</option>
+                            <option value="faa">Arquitectura y Artes</option>
+                            <option value="fcs">Ciencias de la Salud</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="especialidad">Departamento / Especialidad</label>
+                        <select id="especialidad" class="input-flat" required>
+                            <option value="">Seleccione primero la Facultad...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="disponibilidad">Máximo de Tesis (Cupo)</label>
+                        <input type="number" id="disponibilidad" min="1" max="10" value="5" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="password-ase">Contraseña Inicial</label>
+                        <input type="password" id="password-ase" placeholder="••••••••" class="input-flat" required>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('asesor')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Dar de Alta Asesor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Asesor -->
+    <div id="modal-editar-asesor" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Asesor / Jurado</h2>
+                <button onclick="closeModal('editar-asesor')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Asesor actualizado con éxito'); closeModal('editar-asesor');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id-empleado-edit">Código de Empleado (ID)</label>
+                        <input type="text" id="id-empleado-edit" value="EMP-9921" class="input-flat" required readonly title="El código no se puede cambiar">
+                    </div>
+                    <div>
+                        <label for="telefono-ase-edit">Número de Teléfono</label>
+                        <input type="tel" id="telefono-ase-edit" value="829-555-0101" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="nombre-ase-edit">Nombre Completo</label>
+                    <input type="text" id="nombre-ase-edit" value="Ing. Roberto Gómez" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="correo-ase-edit">Correo Electrónico Institucional</label>
+                    <input type="email" id="correo-ase-edit" value="rgomez@unphu.edu.do" class="input-flat" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="facultad-edit">Facultad</label>
+                        <select id="facultad-edit" class="input-flat" required onchange="updateEspecialidades('facultad-edit', 'especialidad-edit')">
+                            <option value="fct" selected>Ciencias y Tecnología</option>
+                            <option value="faa">Arquitectura y Artes</option>
+                            <option value="fcs">Ciencias de la Salud</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="especialidad-edit">Departamento / Especialidad</label>
+                        <select id="especialidad-edit" class="input-flat" required>
+                            <option value="software" selected>Ingeniería de Software / Ciberseguridad</option>
+                            <option value="civil">Ingeniería Civil</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="disponibilidad-edit">Máximo de Tesis (Cupo)</label>
+                        <input type="number" id="disponibilidad-edit" min="1" max="10" value="5" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="estado-ase-edit">Estatus</label>
+                        <select id="estado-ase-edit" class="input-flat" required>
+                            <option value="disponible" selected>Disponible</option>
+                            <option value="nodisponible">No Disponible</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-asesor')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar Asesor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Tesis -->
+    <div id="modal-tesis" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Registrar Nueva Tesis</h2>
+                <button onclick="closeModal('tesis')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Tesis registrada con éxito'); closeModal('tesis');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="codigo-tesis">Código Único</label>
+                        <input type="text" id="codigo-tesis" placeholder="ej. T-2024-100" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="periodo-tesis">Periodo Académico</label>
+                        <input type="text" id="periodo-tesis" placeholder="ej. 2024/2" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="titulo-tesis">Título de la Tesis</label>
+                    <input type="text" id="titulo-tesis" placeholder="Título completo..." class="input-flat" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="estudiante-tesis">Estudiante Asignado</label>
+                        <select id="estudiante-tesis" class="input-flat" required>
+                            <option value="">Seleccionar Estudiante...</option>
+                            <option value="1">Juan Alberto Pérez (18-0432)</option>
+                            <option value="2">María Fernanda Ruiz (19-1201)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="especialidad-tesis">Especialidad Requerida</label>
+                        <select id="especialidad-tesis" class="input-flat" required onchange="updateAsesores('especialidad-tesis', 'asesor-tesis')">
+                            <option value="">Seleccionar Especialidad...</option>
+                            <option value="software">Ingeniería de Software / Ciberseguridad</option>
+                            <option value="civil">Ingeniería Civil</option>
+                            <option value="urb">Diseño Urbano</option>
+                            <option value="paisaje">Arquitectura Paisajista</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="asesor-tesis">Profesor / Asesor</label>
+                        <select id="asesor-tesis" class="input-flat" required>
+                            <option value="">Seleccione primero una especialidad...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fecha-tesis">Fecha de Entrega Estimada</label>
+                        <input type="date" id="fecha-tesis" class="input-flat" required>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('tesis')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar Tesis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Tesis -->
+    <div id="modal-editar-tesis" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-xl flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Registro de Tesis</h2>
+                <button onclick="closeModal('editar-tesis')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Tesis actualizada con éxito'); closeModal('editar-tesis');">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="codigo-tesis-edit">Código Único</label>
+                        <input type="text" id="codigo-tesis-edit" value="T-2023-001" class="input-flat" required readonly title="Código inmutable">
+                    </div>
+                    <div>
+                        <label for="periodo-tesis-edit">Periodo Académico</label>
+                        <input type="text" id="periodo-tesis-edit" value="2024/2" class="input-flat" required>
+                    </div>
+                </div>
+                <div>
+                    <label for="titulo-tesis-edit">Título de la Tesis</label>
+                    <input type="text" id="titulo-tesis-edit" value="Optimización de Redes Neuronales" class="input-flat" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="estudiante-tesis-edit">Estudiante Asignado</label>
+                        <select id="estudiante-tesis-edit" class="input-flat" required>
+                            <option value="1" selected>Juan Alberto Pérez (18-0432)</option>
+                            <option value="2">María Fernanda Ruiz (19-1201)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="especialidad-tesis-edit">Especialidad Requerida</label>
+                        <select id="especialidad-tesis-edit" class="input-flat" required onchange="updateAsesores('especialidad-tesis-edit', 'asesor-tesis-edit')">
+                            <option value="software" selected>Ingeniería de Software / Ciberseguridad</option>
+                            <option value="civil">Ingeniería Civil</option>
+                            <option value="urb">Diseño Urbano</option>
+                            <option value="paisaje">Arquitectura Paisajista</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="asesor-tesis-edit">Profesor / Asesor</label>
+                        <select id="asesor-tesis-edit" class="input-flat" required>
+                            <option value="1" selected>Ing. Roberto Gómez (Disponible: 4)</option>
+                            <option value="3">Ing. Carlos Pérez (Disponible: 3)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="estado-tesis-edit">Estado</label>
+                        <select id="estado-tesis-edit" class="input-flat" required>
+                            <option value="borrador">Borrador</option>
+                            <option value="revision" selected>En Revisión</option>
+                            <option value="aprobada">Aprobada</option>
+                            <option value="finalizada">Finalizada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="fecha-tesis-edit">Fecha de Entrega</label>
+                        <input type="date" id="fecha-tesis-edit" value="2024-11-15" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="calificacion-tesis-edit">Calificación Final</label>
+                        <input type="number" id="calificacion-tesis-edit" min="0" max="100" placeholder="Ej. 95" class="input-flat">
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-tesis')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar Tesis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modales Módulo Académico (Facultad, Carrera, Especialidad) -->
+    
+    <!-- Modal: Agregar Facultad -->
+    <div id="modal-facultad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Registrar Facultad</h2>
+                <button onclick="closeModal('facultad')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Facultad registrada con éxito'); closeModal('facultad');">
+                <div>
+                    <label for="codigo-facultad">Código de la Facultad</label>
+                    <input type="text" id="codigo-facultad" placeholder="ej. FCT" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="nombre-facultad">Nombre de la Facultad</label>
+                    <input type="text" id="nombre-facultad" placeholder="ej. Facultad de Ciencias y Tecnología" class="input-flat" required>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('facultad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Facultad -->
+    <div id="modal-editar-facultad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Facultad</h2>
+                <button onclick="closeModal('editar-facultad')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Facultad actualizada con éxito'); closeModal('editar-facultad');">
+                <div>
+                    <label for="codigo-facultad-edit">Código de la Facultad</label>
+                    <input type="text" id="codigo-facultad-edit" value="FCT" class="input-flat bg-gray-50" readonly title="El código no se puede modificar" required>
+                </div>
+                <div>
+                    <label for="nombre-facultad-edit">Nombre de la Facultad</label>
+                    <input type="text" id="nombre-facultad-edit" value="Facultad de Ciencias y Tecnología" class="input-flat" required>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-facultad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Facultad -->
+    <div id="modal-eliminar-facultad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto border-t-4 border-red-600">
+            <div class="p-6 text-center space-y-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h2 class="font-bold text-gray-900 text-lg">Eliminar Facultad</h2>
+                <p class="text-sm text-gray-500">¿Está seguro de que desea eliminar la facultad <span class="font-bold text-gray-800">Ciencias y Tecnología (FCT)</span>? Esta acción no se puede deshacer y puede afectar las carreras y especialidades vinculadas.</p>
+                <div class="pt-4 flex justify-center space-x-3">
+                    <button type="button" onclick="closeModal('eliminar-facultad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 border border-gray-300 hover:bg-gray-50 transition">Cancelar</button>
+                    <button type="button" onclick="alert('Facultad eliminada con éxito'); closeModal('eliminar-facultad');" class="bg-red-600 text-white px-6 py-2 text-xs font-bold uppercase hover:bg-red-700 transition">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Carrera -->
+    <div id="modal-carrera" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Registrar Carrera</h2>
+                <button onclick="closeModal('carrera')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Carrera registrada con éxito'); closeModal('carrera');">
+                <div>
+                    <label for="codigo-carrera">Código de la Carrera</label>
+                    <input type="text" id="codigo-carrera" placeholder="ej. ING-SIST" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="nombre-carrera">Nombre de la Carrera</label>
+                    <input type="text" id="nombre-carrera" placeholder="ej. Ingeniería de Sistemas" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="facultad-carrera">Facultad Asociada</label>
+                    <select id="facultad-carrera" class="input-flat" required>
+                        <option value="">Seleccione Facultad...</option>
+                        <option value="fct">Ciencias y Tecnología</option>
+                        <option value="faa">Arquitectura y Artes</option>
+                        <option value="fcs">Ciencias de la Salud</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('carrera')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Carrera -->
+    <div id="modal-editar-carrera" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Carrera</h2>
+                <button onclick="closeModal('editar-carrera')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Carrera actualizada con éxito'); closeModal('editar-carrera');">
+                <div>
+                    <label for="codigo-carrera-edit">Código de la Carrera</label>
+                    <input type="text" id="codigo-carrera-edit" value="ING-SIST" class="input-flat bg-gray-50" readonly title="El código no se puede modificar" required>
+                </div>
+                <div>
+                    <label for="nombre-carrera-edit">Nombre de la Carrera</label>
+                    <input type="text" id="nombre-carrera-edit" value="Ingeniería de Sistemas" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="facultad-carrera-edit">Facultad Asociada</label>
+                    <select id="facultad-carrera-edit" class="input-flat" required>
+                        <option value="fct" selected>Ciencias y Tecnología</option>
+                        <option value="faa">Arquitectura y Artes</option>
+                        <option value="fcs">Ciencias de la Salud</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-carrera')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Carrera -->
+    <div id="modal-eliminar-carrera" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto border-t-4 border-red-600">
+            <div class="p-6 text-center space-y-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h2 class="font-bold text-gray-900 text-lg">Eliminar Carrera</h2>
+                <p class="text-sm text-gray-500">¿Está seguro de que desea eliminar la carrera <span class="font-bold text-gray-800">Ingeniería de Sistemas (ING-SIST)</span>? Esta acción es permanente y puede impactar a los estudiantes asociados.</p>
+                <div class="pt-4 flex justify-center space-x-3">
+                    <button type="button" onclick="closeModal('eliminar-carrera')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 border border-gray-300 hover:bg-gray-50 transition">Cancelar</button>
+                    <button type="button" onclick="alert('Carrera eliminada con éxito'); closeModal('eliminar-carrera');" class="bg-red-600 text-white px-6 py-2 text-xs font-bold uppercase hover:bg-red-700 transition">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Especialidad -->
+    <div id="modal-especialidad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Registrar Especialidad</h2>
+                <button onclick="closeModal('especialidad')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Especialidad registrada con éxito'); closeModal('especialidad');">
+                <div>
+                    <label for="codigo-especialidad">Código de Especialidad</label>
+                    <input type="text" id="codigo-especialidad" placeholder="ej. ESP-CIB" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="nombre-especialidad">Nombre de la Especialidad</label>
+                    <input type="text" id="nombre-especialidad" placeholder="ej. Ciberseguridad" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="facultad-especialidad">Facultad / Departamento Asociado</label>
+                    <select id="facultad-especialidad" class="input-flat" required>
+                        <option value="">Seleccione Facultad...</option>
+                        <option value="fct">Ciencias y Tecnología</option>
+                        <option value="faa">Arquitectura y Artes</option>
+                        <option value="fcs">Ciencias de la Salud</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('especialidad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Especialidad -->
+    <div id="modal-editar-especialidad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-wider text-sm">Editar Especialidad</h2>
+                <button onclick="closeModal('editar-especialidad')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Especialidad actualizada con éxito'); closeModal('editar-especialidad');">
+                <div>
+                    <label for="codigo-especialidad-edit">Código de Especialidad</label>
+                    <input type="text" id="codigo-especialidad-edit" value="ESP-CIB" class="input-flat bg-gray-50" readonly title="El código no se puede modificar" required>
+                </div>
+                <div>
+                    <label for="nombre-especialidad-edit">Nombre de la Especialidad</label>
+                    <input type="text" id="nombre-especialidad-edit" value="Ciberseguridad" class="input-flat" required>
+                </div>
+                <div>
+                    <label for="facultad-especialidad-edit">Facultad / Departamento Asociado</label>
+                    <select id="facultad-especialidad-edit" class="input-flat" required>
+                        <option value="fct" selected>Ciencias y Tecnología</option>
+                        <option value="faa">Arquitectura y Artes</option>
+                        <option value="fcs">Ciencias de la Salud</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('editar-especialidad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Especialidad -->
+    <div id="modal-eliminar-especialidad" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md flat-card no-shadow overflow-hidden my-auto border-t-4 border-red-600">
+            <div class="p-6 text-center space-y-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h2 class="font-bold text-gray-900 text-lg">Eliminar Especialidad</h2>
+                <p class="text-sm text-gray-500">¿Está seguro de que desea eliminar la especialidad <span class="font-bold text-gray-800">Ciberseguridad (ESP-CIB)</span>? Esta acción removerá el filtro asociado a los asesores y no se puede deshacer.</p>
+                <div class="pt-4 flex justify-center space-x-3">
+                    <button type="button" onclick="closeModal('eliminar-especialidad')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 border border-gray-300 hover:bg-gray-50 transition">Cancelar</button>
+                    <button type="button" onclick="alert('Especialidad eliminada con éxito'); closeModal('eliminar-especialidad');" class="bg-red-600 text-white px-6 py-2 text-xs font-bold uppercase hover:bg-red-700 transition">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación Superior -->
+    <nav class="bg-unphu text-white px-6 py-4 flex justify-between items-center no-shadow sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <div class="font-bold text-xl tracking-tight uppercase">UNPHU | <span class="font-light italic">Tesis</span></div>
+        </div>
+        <div class="flex items-center space-x-6 text-sm">
+            <span class="hidden md:inline font-medium">Panel Administrativo</span>
+            <button class="border border-white px-4 py-1 hover:bg-white hover:text-green-900 transition font-bold uppercase text-xs">SALIR</button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 flex-col md:flex-row">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-white border-r border-gray-200 p-6 space-y-2">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Módulos</p>
+            <button onclick="showPage('dashboard')" id="btn-dashboard" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold nav-link-active hover:bg-gray-50 transition">DASHBOARD</button>
+            <button onclick="showPage('estudiantes')" id="btn-estudiantes" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">ESTUDIANTES</button>
+            <button onclick="showPage('asesores')" id="btn-asesores" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">ASESORES</button>
+            <button onclick="showPage('tesis')" id="btn-tesis" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">REPOSITORIO TESIS</button>
+            <button onclick="showPage('academica')" id="btn-academica" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">ESTRUCTURA ACADÉMICA</button>
+            <button onclick="showPage('reportes')" id="btn-reportes" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">REPORTES</button>
+        </aside>
+
+        <!-- Contenedor Dinámico -->
+        <main class="flex-1 p-6 md:p-10" id="main-content">
+            
+            <!-- PÁGINA: DASHBOARD -->
+            <section id="page-dashboard" class="content-page">
+                <header class="mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800">Resumen Institucional</h1>
+                    <p class="text-gray-500">Métricas clave del periodo académico actual.</p>
+                </header>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 text-center">
+                    <div class="flat-card p-6 border-b-4 border-unphu">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Total Estudiantes</p>
+                        <p class="text-3xl font-black mt-2">1,240</p>
+                    </div>
+                    <div class="flat-card p-6 border-b-4 border-blue-500">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Asesores Activos</p>
+                        <p class="text-3xl font-black mt-2">86</p>
+                    </div>
+                    <div class="flat-card p-6 border-b-4 border-orange-500">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Tesis en Proceso</p>
+                        <p class="text-3xl font-black mt-2">142</p>
+                    </div>
+                    <div class="flat-card p-6 border-b-4 border-green-600">
+                        <p class="text-xs text-gray-500 uppercase font-bold">Tesis Aprobadas</p>
+                        <p class="text-3xl font-black mt-2">56</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PÁGINA: ESTUDIANTES -->
+            <section id="page-estudiantes" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Gestión de Estudiantes</h1>
+                    <div class="flex space-x-2">
+                        <button class="border border-gray-300 bg-white text-gray-700 px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-gray-50 transition" onclick="alert('Generando salida por pantalla (Reporte hv99-km9999)...')">Imprimir Lista</button>
+                        <button onclick="openModal('estudiante')" class="bg-unphu text-white px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-green-800 transition">Registrar Estudiante</button>
+                    </div>
+                </div>
+                <div class="flat-card overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                            <tr>
+                                <th class="px-6 py-3 border-b">Matrícula</th>
+                                <th class="px-6 py-3 border-b">Nombre</th>
+                                <th class="px-6 py-3 border-b">Número Telefónico</th>
+                                <th class="px-6 py-3 border-b">Correo</th>
+                                <th class="px-6 py-3 border-b">Carrera</th>
+                                <th class="px-6 py-3 border-b">Estatus</th>
+                                <th class="px-6 py-3 border-b text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-6 py-4 font-mono font-bold">18-0432</td>
+                                <td class="px-6 py-4">Juan Alberto Pérez</td>
+                                <td class="px-6 py-4 font-mono text-gray-600">809-555-0123</td>
+                                <td class="px-6 py-4">18-0432@unphu.edu.do</td>
+                                <td class="px-6 py-4 italic text-gray-500">Ing. de Sistemas</td>
+                                <td class="px-6 py-4"><span class="status-badge bg-green-100 text-green-700">Activo</span></td>
+                                <td class="px-6 py-4 text-right"><button onclick="openModal('editar-estudiante')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-6 py-4 font-mono font-bold">19-1201</td>
+                                <td class="px-6 py-4">María Fernanda Ruiz</td>
+                                <td class="px-6 py-4 font-mono text-gray-600">829-555-0456</td>
+                                <td class="px-6 py-4">19-1201@unphu.edu.do</td>
+                                <td class="px-6 py-4 italic text-gray-500">Arquitectura</td>
+                                <td class="px-6 py-4"><span class="status-badge bg-orange-100 text-orange-700">En Tesis</span></td>
+                                <td class="px-6 py-4 text-right"><button onclick="openModal('editar-estudiante')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 flex justify-between items-center mt-4 flat-card">
+                    <span>Salida de sistema: <strong>Lista de Estudiantes</strong> (Al 15/12/2024)</span>
+                    <span class="font-mono text-[10px]">Usuario: Admin | Reporte: hv99-km9999 | Pág: 1/1</span>
+                </div>
+            </section>
+
+            <!-- PÁGINA: ASESORES -->
+            <section id="page-asesores" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Directorio de Asesores</h1>
+                    <div class="flex space-x-2">
+                        <button class="border border-gray-300 bg-white text-gray-700 px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-gray-50 transition" onclick="alert('Generando salida por pantalla (Reporte hv99-km9999)...')">Imprimir Lista</button>
+                        <button onclick="openModal('asesor')" class="bg-unphu text-white px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-green-800 transition">Registrar Nuevo Asesor</button>
+                    </div>
+                </div>
+                <div class="flat-card overflow-x-auto">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                            <tr>
+                                <th class="px-4 py-3 border-b">Código</th>
+                                <th class="px-4 py-3 border-b">Nombre Asesor</th>
+                                <th class="px-4 py-3 border-b">Fecha Reg.</th>
+                                <th class="px-4 py-3 border-b">Núm. Teléfono</th>
+                                <th class="px-4 py-3 border-b">Correo</th>
+                                <th class="px-4 py-3 border-b">Facultad</th>
+                                <th class="px-4 py-3 border-b">Departamento</th>
+                                <th class="px-4 py-3 border-b">Especialidad</th>
+                                <th class="px-4 py-3 border-b text-center">Tesis Asignadas</th>
+                                <th class="px-4 py-3 border-b text-center">Disponibilidad</th>
+                                <th class="px-4 py-3 border-b text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-4 py-4 font-mono font-bold text-xs">EMP-9921</td>
+                                <td class="px-4 py-4">Ing. Roberto Gómez</td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">12/01/2023</td>
+                                <td class="px-4 py-4 font-mono text-gray-600">829-555-0101</td>
+                                <td class="px-4 py-4 text-gray-600">rgomez@unphu.edu.do</td>
+                                <td class="px-4 py-4 italic text-gray-500">Ciencias y Tecnología</td>
+                                <td class="px-4 py-4">Ing. de Software</td>
+                                <td class="px-4 py-4">Ciberseguridad</td>
+                                <td class="px-4 py-4 text-center font-bold text-gray-700">4</td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="status-badge bg-green-100 text-green-700">Disponible</span>
+                                </td>
+                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-asesor')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-4 py-4 font-mono font-bold text-xs">EMP-8843</td>
+                                <td class="px-4 py-4">Dra. Elena Santos</td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">05/03/2022</td>
+                                <td class="px-4 py-4 font-mono text-gray-600">809-555-0909</td>
+                                <td class="px-4 py-4 text-gray-600">esantos@unphu.edu.do</td>
+                                <td class="px-4 py-4 italic text-gray-500">Arquitectura y Artes</td>
+                                <td class="px-4 py-4">Diseño Urbano</td>
+                                <td class="px-4 py-4">Urbanismo Sostenible</td>
+                                <td class="px-4 py-4 text-center font-bold text-gray-700">2</td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="status-badge bg-green-100 text-green-700">Disponible</span>
+                                </td>
+                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-asesor')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 flex justify-between items-center mt-4 flat-card">
+                    <span>Salida de sistema: <strong>Listado de Asesor</strong> (Al 15/12/2024)</span>
+                    <span class="font-mono text-[10px]">Usuario: Admin | Reporte: hv99-km9999 | Pág: 1/1</span>
+                </div>
+            </section>
+
+            <!-- PÁGINA: TESIS (REPOSITORIO) -->
+            <section id="page-tesis" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Repositorio Global de Tesis</h1>
+                    <div class="flex space-x-2">
+                        <button class="border border-gray-300 bg-white text-gray-700 px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-gray-50 transition" onclick="alert('Generando salida por pantalla (Reporte hv99-km9999)...')">Imprimir Lista</button>
+                        <button onclick="openModal('tesis')" class="bg-unphu text-white px-4 py-2 text-sm font-bold no-shadow uppercase hover:bg-green-800 transition">Registrar Tesis</button>
+                    </div>
+                </div>
+                <div class="flat-card overflow-x-auto">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                            <tr>
+                                <th class="px-4 py-3 border-b">Código</th>
+                                <th class="px-4 py-3 border-b">Estudiante</th>
+                                <th class="px-4 py-3 border-b">Fecha Reg.</th>
+                                <th class="px-4 py-3 border-b">Título de la Tesis</th>
+                                <th class="px-4 py-3 border-b text-center">Descarga</th>
+                                <th class="px-4 py-3 border-b">Asesor</th>
+                                <th class="px-4 py-3 border-b">Estado</th>
+                                <th class="px-4 py-3 border-b">Fecha de Entrega</th>
+                                <th class="px-4 py-3 border-b">Facultad/Carrera</th>
+                                <th class="px-4 py-3 border-b text-center">Calificación</th>
+                                <th class="px-4 py-3 border-b text-right">Periodo</th>
+                                <th class="px-4 py-3 border-b text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-4 py-4 font-mono font-bold text-xs">T-2023-001</td>
+                                <td class="px-4 py-4">Juan Alberto Pérez</td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">10/08/2024</td>
+                                <td class="px-4 py-4 max-w-[200px] truncate font-medium" title="Optimización de Redes Neuronales">Optimización de Redes Neuronales</td>
+                                <td class="px-4 py-4 text-center">
+                                    <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[DOCX]</a>
+                                </td>
+                                <td class="px-4 py-4">Ing. Roberto Gómez</td>
+                                <td class="px-4 py-4">
+                                    <span class="status-badge bg-blue-100 text-blue-800">En Revisión</span>
+                                </td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">15/11/2024</td>
+                                <td class="px-4 py-4 italic text-gray-500">Ing. de Sistemas</td>
+                                <td class="px-4 py-4 text-center text-gray-400 font-bold">-</td>
+                                <td class="px-4 py-4 font-mono text-xs text-right">2024/2</td>
+                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-tesis')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-4 py-4 font-mono font-bold text-xs">T-2023-042</td>
+                                <td class="px-4 py-4">María Fernanda Ruiz</td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">05/09/2024</td>
+                                <td class="px-4 py-4 max-w-[200px] truncate font-medium" title="Análisis Estructural Pavimentos">Análisis Estructural Pavimentos</td>
+                                <td class="px-4 py-4 text-center">
+                                    <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[PDF]</a>
+                                </td>
+                                <td class="px-4 py-4">Dra. Elena Santos</td>
+                                <td class="px-4 py-4">
+                                    <span class="status-badge bg-green-100 text-green-800">Aprobada</span>
+                                </td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">01/12/2024</td>
+                                <td class="px-4 py-4 italic text-gray-500">Arquitectura</td>
+                                <td class="px-4 py-4 text-center font-bold text-unphu">95</td>
+                                <td class="px-4 py-4 font-mono text-xs text-right">2024/2</td>
+                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-tesis')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 flex justify-between items-center mt-4 flat-card">
+                    <span>Salida de sistema: <strong>Lista de Tesis</strong> (Al 15/12/2024)</span>
+                    <span class="font-mono text-[10px]">Usuario: Admin | Reporte: hv99-km9999 | Pág: 1/1</span>
+                </div>
+            </section>
+
+            <!-- PÁGINA: ESTRUCTURA ACADÉMICA -->
+            <section id="page-academica" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Gestión de Estructura Académica</h1>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Tabla de Facultades -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-lg font-bold text-gray-700">1. Facultades</h2>
+                            <button onclick="openModal('facultad')" class="bg-unphu text-white px-4 py-2 text-xs font-bold no-shadow uppercase hover:bg-green-800 transition">Agregar Facultad</button>
+                        </div>
+                        <div class="flat-card overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3 border-b">Código</th>
+                                        <th class="px-6 py-3 border-b w-full">Nombre de Facultad</th>
+                                        <th class="px-6 py-3 border-b text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">FCT</td>
+                                        <td class="px-6 py-4">Facultad de Ciencias y Tecnología</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-facultad')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-facultad')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">FAA</td>
+                                        <td class="px-6 py-4">Facultad de Arquitectura y Artes</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-facultad')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-facultad')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Carreras -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-lg font-bold text-gray-700">2. Carreras</h2>
+                            <button onclick="openModal('carrera')" class="bg-unphu text-white px-4 py-2 text-xs font-bold no-shadow uppercase hover:bg-green-800 transition">Agregar Carrera</button>
+                        </div>
+                        <div class="flat-card overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3 border-b">Código</th>
+                                        <th class="px-6 py-3 border-b">Nombre de Carrera</th>
+                                        <th class="px-6 py-3 border-b w-full">Facultad Asociada</th>
+                                        <th class="px-6 py-3 border-b text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">ING-SIST</td>
+                                        <td class="px-6 py-4">Ingeniería de Sistemas</td>
+                                        <td class="px-6 py-4 italic text-gray-500">FCT - Ciencias y Tecnología</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-carrera')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-carrera')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">ARQ</td>
+                                        <td class="px-6 py-4">Arquitectura</td>
+                                        <td class="px-6 py-4 italic text-gray-500">FAA - Arquitectura y Artes</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-carrera')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-carrera')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Especialidades -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-lg font-bold text-gray-700">3. Especialidades / Departamentos</h2>
+                            <button onclick="openModal('especialidad')" class="bg-unphu text-white px-4 py-2 text-xs font-bold no-shadow uppercase hover:bg-green-800 transition">Agregar Especialidad</button>
+                        </div>
+                        <div class="flat-card overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                    <tr>
+                                        <th class="px-6 py-3 border-b">Código</th>
+                                        <th class="px-6 py-3 border-b">Especialidad</th>
+                                        <th class="px-6 py-3 border-b w-full">Facultad / Departamento Asociado</th>
+                                        <th class="px-6 py-3 border-b text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">ESP-CIB</td>
+                                        <td class="px-6 py-4">Ciberseguridad</td>
+                                        <td class="px-6 py-4 italic text-gray-500">FCT - Ciencias y Tecnología</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-especialidad')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-especialidad')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-6 py-4 font-mono font-bold text-xs">ESP-URB</td>
+                                        <td class="px-6 py-4">Diseño Urbano</td>
+                                        <td class="px-6 py-4 italic text-gray-500">FAA - Arquitectura y Artes</td>
+                                        <td class="px-6 py-4 text-right space-x-3">
+                                            <button onclick="openModal('editar-especialidad')" class="text-unphu font-bold hover:underline">Editar</button>
+                                            <button onclick="openModal('eliminar-especialidad')" class="text-red-600 font-bold hover:underline">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PÁGINA: REPORTES -->
+            <section id="page-reportes" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Módulo de Reportes</h1>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8">
+                    <!-- Reporte 1: Comentarios -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-lg font-bold text-gray-700">1. Lista de Comentarios</h2>
+                            <button class="border border-gray-300 bg-white text-gray-700 px-4 py-2 text-xs font-bold no-shadow uppercase hover:bg-gray-50 transition" onclick="alert('Generando salida por pantalla (Reporte hv99-km9999)...')">Imprimir Lista</button>
+                        </div>
+                        <div class="flat-card overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                    <tr>
+                                        <th class="px-4 py-3 border-b">Código</th>
+                                        <th class="px-4 py-3 border-b">Fecha</th>
+                                        <th class="px-4 py-3 border-b w-1/3">Contenido</th>
+                                        <th class="px-4 py-3 border-b">Hora</th>
+                                        <th class="px-4 py-3 border-b">Realizado por</th>
+                                        <th class="px-4 py-3 border-b">Tesis</th>
+                                        <th class="px-4 py-3 border-b">Facultad</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">C-2024-01</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">15/12/2024</td>
+                                        <td class="px-4 py-4 text-gray-700">La sección de metodología no especifica el tamaño de la muestra ni el método de muestreo utilizado.</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">14:30</td>
+                                        <td class="px-4 py-4 text-gray-800">Ing. Roberto Gómez</td>
+                                        <td class="px-4 py-4 font-mono font-bold text-xs text-unphu">T-2023-001</td>
+                                        <td class="px-4 py-4 italic text-gray-500">Ing. de Sistemas</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">C-2024-02</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">16/12/2024</td>
+                                        <td class="px-4 py-4 text-gray-700">Se recomienda ampliar las fuentes bibliográficas con artículos de los últimos 5 años.</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">09:15</td>
+                                        <td class="px-4 py-4 text-gray-800">Dra. Elena Santos</td>
+                                        <td class="px-4 py-4 font-mono font-bold text-xs text-unphu">T-2023-042</td>
+                                        <td class="px-4 py-4 italic text-gray-500">Arquitectura</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 flex justify-between items-center mt-4 flat-card">
+                            <span>Salida de sistema: <strong>Lista de Comentarios</strong> (Al 15/12/2024)</span>
+                            <span class="font-mono text-[10px]">Usuario: Admin | Reporte: hv99-km9999 | Pág: 1/1</span>
+                        </div>
+                    </div>
+
+                    <!-- Reporte 2: Historial de Versiones -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-lg font-bold text-gray-700">2. Historial de Versiones</h2>
+                            <button class="border border-gray-300 bg-white text-gray-700 px-4 py-2 text-xs font-bold no-shadow uppercase hover:bg-gray-50 transition" onclick="alert('Generando salida por pantalla (Reporte hv99-km9999)...')">Imprimir Historial</button>
+                        </div>
+                        <div class="flat-card overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                    <tr>
+                                        <th class="px-4 py-3 border-b">Código</th>
+                                        <th class="px-4 py-3 border-b">Medio</th>
+                                        <th class="px-4 py-3 border-b">Fecha</th>
+                                        <th class="px-4 py-3 border-b text-center">Link de Descarga</th>
+                                        <th class="px-4 py-3 border-b">Tipo de Archivo</th>
+                                        <th class="px-4 py-3 border-b">Estudiante</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-sm">
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">HV-00001</td>
+                                        <td class="px-4 py-4 text-gray-600">Pantalla</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">10/12/2024</td>
+                                        <td class="px-4 py-4 text-center">
+                                            <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[DOCX]</a>
+                                        </td>
+                                        <td class="px-4 py-4">Tesis Completa v1</td>
+                                        <td class="px-4 py-4">Juan Alberto Pérez</td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">HV-00002</td>
+                                        <td class="px-4 py-4 text-gray-600">Pantalla</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">14/12/2024</td>
+                                        <td class="px-4 py-4 text-center">
+                                            <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[PDF]</a>
+                                        </td>
+                                        <td class="px-4 py-4">Anexos y Planos v2</td>
+                                        <td class="px-4 py-4">María Fernanda Ruiz</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 bg-gray-50 border border-gray-200 text-xs text-gray-500 flex justify-between items-center mt-4 flat-card">
+                            <span>Salida de sistema: <strong>Historial de versiones</strong> (Al 15/12/2024)</span>
+                            <span class="font-mono text-[10px]">Usuario: Admin | Reporte: hv99-km9999 | Pág: 1/1</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="bg-white border-t border-gray-200 p-6 text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+        © 2024 Universidad Nacional Pedro Henríquez Ureña (UNPHU) - Gestión de Postgrado
+    </footer>
+
+    <script>
+        /**
+         * Lógica de Modales
+         */
+        function openModal(type) {
+            document.getElementById('modal-' + type).classList.remove('hidden');
+        }
+
+        function closeModal(type) {
+            document.getElementById('modal-' + type).classList.add('hidden');
+        }
+
+        /**
+         * Manejador de navegación simple (SPA)
+         */
+        function showPage(pageId) {
+            // Ocultar todas las páginas
+            document.querySelectorAll('.content-page').forEach(page => {
+                page.classList.add('hidden');
+            });
+
+            // Mostrar página seleccionada
+            const selectedPage = document.getElementById('page-' + pageId);
+            if(selectedPage) selectedPage.classList.remove('hidden');
+
+            // Actualizar botones de navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('nav-link-active', 'text-unphu');
+                btn.classList.add('text-gray-600');
+            });
+
+            const activeBtn = document.getElementById('btn-' + pageId);
+            if(activeBtn) {
+                activeBtn.classList.add('nav-link-active');
+                activeBtn.classList.remove('text-gray-600');
+            }
+        }
+
+        /**
+         * Lógica de Filtros Dinámicos (Facultades -> Especialidades -> Asesores)
+         */
+        const especialidadesData = {
+            fct: [
+                { value: 'software', text: 'Ingeniería de Software / Ciberseguridad' },
+                { value: 'civil', text: 'Ingeniería Civil' }
+            ],
+            faa: [
+                { value: 'urb', text: 'Diseño Urbano' },
+                { value: 'paisaje', text: 'Arquitectura Paisajista' }
+            ],
+            fcs: [
+                { value: 'medicina', text: 'Medicina Interna' },
+                { value: 'odontologia', text: 'Odontología' }
+            ]
+        };
+
+        const asesoresData = {
+            software: [
+                { value: '1', text: 'Ing. Roberto Gómez (Disponible: 4)' },
+                { value: '3', text: 'Ing. Carlos Pérez (Disponible: 2)' }
+            ],
+            civil: [
+                { value: '4', text: 'Ing. Laura Mateo (Disponible: 1)' }
+            ],
+            urb: [
+                { value: '2', text: 'Dra. Elena Santos (Disponible: 3)' }
+            ],
+            paisaje: [
+                { value: '5', text: 'Arq. Luis Martínez (Disponible: 5)' }
+            ]
+        };
+
+        function updateEspecialidades(facultadId, especialidadId) {
+            const facultadSelect = document.getElementById(facultadId);
+            const especialidadSelect = document.getElementById(especialidadId);
+            const selectedFacultad = facultadSelect.value;
+            
+            // Limpiar opciones actuales
+            especialidadSelect.innerHTML = '<option value="">Seleccione Especialidad...</option>';
+            
+            if (especialidadesData[selectedFacultad]) {
+                especialidadesData[selectedFacultad].forEach(esp => {
+                    especialidadSelect.innerHTML += `<option value="${esp.value}">${esp.text}</option>`;
+                });
+            }
+        }
+
+        function updateAsesores(especialidadId, asesorId) {
+            const especialidadSelect = document.getElementById(especialidadId);
+            const asesorSelect = document.getElementById(asesorId);
+            const selectedEspecialidad = especialidadSelect.value;
+
+            // Limpiar opciones actuales
+            asesorSelect.innerHTML = '<option value="">Seleccionar Asesor...</option>';
+
+            if (asesoresData[selectedEspecialidad]) {
+                asesoresData[selectedEspecialidad].forEach(asesor => {
+                    asesorSelect.innerHTML += `<option value="${asesor.value}">${asesor.text}</option>`;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
