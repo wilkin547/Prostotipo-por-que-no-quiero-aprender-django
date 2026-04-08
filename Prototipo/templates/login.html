@@ -53,9 +53,17 @@
                 <p class="text-xs text-gray-500 mt-2 uppercase tracking-widest">Acceso al Sistema Académico</p>
             </div>
 
-            <!-- FORMULARIO (MÉTODO POST PARA DJANGO) -->
-            <form action="#" method="POST" class="space-y-6">
-                <!-- El tag de Django para seguridad iría aquí: {% csrf_token %} -->
+            <!-- FORMULARIO FUNCIONAL DE DJANGO -->
+            <form action="{% url 'login' %}" method="POST" class="space-y-6">
+                <!-- TOKEN DE SEGURIDAD OBLIGATORIO -->
+                {% csrf_token %}
+                
+                <!-- MOSTRAR ERRORES DE AUTENTICACIÓN -->
+                {% if form.errors %}
+                <div class="p-3 bg-red-50 border-l-4 border-red-500 text-xs text-red-700">
+                    Matrícula o contraseña incorrectos. Por favor, intente de nuevo.
+                </div>
+                {% endif %}
                 
                 <div>
                     <label for="username" class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Matrícula o Código de Empleado</label>
@@ -100,7 +108,7 @@
                 Universidad Nacional Pedro Henríquez Ureña
             </p>
             <p class="text-[9px] text-gray-400 mt-1">
-                © 2024 Todos los derechos reservados.
+                © 2026 Todos los derechos reservados.
             </p>
         </div>
     </div>
