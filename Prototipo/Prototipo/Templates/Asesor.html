@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Asesor - UNPHU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #111827; }
+        .unphu-green { color: #006837; }
+        .bg-unphu { background-color: #006837; }
+        .border-unphu { border-color: #006837; }
+        
+        /* Estilo Flat - Sin sombras */
+        .flat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .flat-button {
+            transition: all 0.2s;
+            border-radius: 2px;
+        }
+
+        /* Scrollbar minimalista para lectura */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #006837; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR (TOPBAR) -->
+    <header class="bg-unphu text-white h-14 flex items-center justify-between px-6 shrink-0">
+        <div class="flex items-center space-x-4">
+            <div class="bg-white p-1 rounded-sm">
+                <!-- Placeholder Logo UNPHU -->
+                <div class="w-8 h-8 bg-gray-200 flex items-center justify-center text-[10px] text-black font-bold">LOGO</div>
+            </div>
+            <h1 class="text-sm font-semibold tracking-wider uppercase">Gestión de Tesis - UNPHU</h1>
+        </div>
+        <div class="flex items-center space-x-6 text-sm">
+            <span class="opacity-90">Asesor: Dr. Roberto Martínez</span>
+            <a href="#" class="bg-white/10 hover:bg-white/20 px-3 py-1 flat-button uppercase text-xs font-bold">Cerrar Sesión</a>
+        </div>
+    </header>
+
+    <main class="flex flex-1 overflow-hidden">
+        
+        <!-- SIDEBAR: LISTA DE ESTUDIANTES -->
+        <aside class="w-80 flat-card flex flex-col shrink-0 border-t-0 border-l-0 border-b-0">
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Mis Estudiantes Asignados</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <!-- Estudiante 1 -->
+                <div class="p-4 border-b border-gray-100 bg-green-50 border-l-4 border-l-unphu cursor-pointer">
+                    <p class="text-[10px] font-bold text-unphu uppercase mb-1">En Revisión</p>
+                    <p class="text-sm font-semibold">Juan Pérez - 19-0452</p>
+                    <p class="text-xs text-gray-500 truncate">Implementación de IA en Logística...</p>
+                    <p class="text-[10px] text-gray-400 mt-2">Versión 3 • 12 Oct 2023</p>
+                </div>
+
+                <!-- Estudiante 2 -->
+                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <p class="text-[10px] font-bold text-yellow-600 uppercase mb-1">Pendiente</p>
+                    <p class="text-sm font-semibold">María García - 20-0110</p>
+                    <p class="text-xs text-gray-500 truncate">Sostenibilidad en Arquitectura...</p>
+                    <p class="text-[10px] text-gray-400 mt-2">Versión 1 • 15 Oct 2023</p>
+                </div>
+
+                <!-- Estudiante 3 (Aprobado) -->
+                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer opacity-70">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Aprobado para Defensa</p>
+                    <p class="text-sm font-semibold">Carlos Ruiz - 18-0992</p>
+                    <p class="text-xs text-gray-500 truncate">Análisis de Suelos en RD...</p>
+                    <p class="text-[10px] text-gray-400 mt-2">Finalizado • 01 Oct 2023</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ÁREA CENTRAL: VISOR DE DOCUMENTO -->
+        <section class="flex-1 flex flex-col bg-gray-100 border-r border-gray-200">
+            <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-bold uppercase">Expediente: T-2023-0452</h3>
+                    <p class="text-xs text-gray-500">Documento: <span class="font-medium">Tesis_V3_Juan_Perez.pdf</span> (4.2 MB)</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button">Descargar PDF</button>
+                    <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button">Ver Historial</button>
+                </div>
+            </div>
+            
+            <!-- Simulador de Visor PDF -->
+            <div class="flex-1 p-8 overflow-y-auto flex justify-center">
+                <div class="bg-white w-[800px] min-h-[1100px] border border-gray-300 p-16 shadow-sm">
+                    <div class="text-center mb-12">
+                        <p class="text-sm font-bold uppercase tracking-widest mb-2">Universidad Nacional Pedro Henríquez Ureña</p>
+                        <p class="text-xs uppercase mb-8">Facultad de Ciencias y Tecnología</p>
+                        <div class="h-[2px] bg-black w-24 mx-auto mb-10"></div>
+                        <h1 class="text-2xl font-serif font-bold uppercase leading-relaxed">Implementación de Algoritmos de Inteligencia Artificial para la Optimización de Rutas Logísticas en Santo Domingo</h1>
+                    </div>
+                    <div class="space-y-6 text-justify text-sm leading-loose text-gray-800">
+                        <p class="font-bold">Capítulo I: Introducción</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat...</p>
+                        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                        <div class="bg-yellow-50 p-4 border-l-4 border-yellow-400 text-xs italic">
+                            Nota del sistema: Este es un visor de solo lectura para revisión académica.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANEL DERECHO: COMENTARIOS Y ESTADO -->
+        <aside class="w-96 flat-card flex flex-col shrink-0">
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
+            </div>
+            
+            <!-- Historial de Comentarios -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Comentario 1 -->
+                <div class="bg-gray-50 p-3 border border-gray-200 text-xs">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-unphu">Tú (Asesor)</span>
+                        <span class="text-[10px] text-gray-400 font-mono">12/10/2023 10:45 AM</span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed">Juan, la sección de bibliografía debe seguir el formato APA 7ma edición. Por favor revisa las citas de la página 14.</p>
+                </div>
+
+                <!-- Comentario 2 -->
+                <div class="bg-white p-3 border border-gray-200 text-xs italic">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-blue-800">Juan Pérez</span>
+                        <span class="text-[10px] text-gray-400 font-mono">12/10/2023 11:15 AM</span>
+                    </div>
+                    <p class="text-gray-700">Entendido profesor, ya estoy trabajando en las correcciones indicadas.</p>
+                </div>
+            </div>
+
+            <!-- Formulario de Nuevo Comentario -->
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
+                <textarea class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones..."></textarea>
+                
+                <div class="mt-4 space-y-2">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Cambiar Estado de Tesis</label>
+                    <select class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
+                        <option>En Revisión</option>
+                        <option>Requiere Correcciones Mayores</option>
+                        <option>Aprobado para Defensa</option>
+                        <option>Rechazado</option>
+                    </select>
+                </div>
+
+                <button class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
+                    Enviar Retroalimentación
+                </button>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- FOOTER MODO PRUEBAS -->
+    <footer class="bg-gray-200 h-8 flex items-center px-4 justify-between shrink-0">
+        <div class="flex items-center space-x-4">
+            <span class="text-[10px] text-gray-500 uppercase font-bold">Entorno de Pruebas (SQLite)</span>
+            <span class="text-[10px] text-gray-400">|</span>
+            <span class="text-[10px] text-gray-500">Registros cargados: 14 tesis</span>
+        </div>
+        <div class="text-[10px] text-gray-400 font-mono">
+            UNPHU-THESIS-MANAGER v0.1-alpha
+        </div>
+    </footer>
+
+</body>
+</html>

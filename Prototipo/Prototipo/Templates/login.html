@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gestión de Tesis UNPHU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #111827; }
+        .unphu-green { color: #006837; }
+        .bg-unphu { background-color: #006837; }
+        
+        /* Estilo Flat - Sin sombras */
+        .flat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 2px;
+        }
+        
+        .flat-input {
+            border: 1px solid #d1d5db;
+            border-radius: 2px;
+            transition: border-color 0.2s;
+        }
+        
+        .flat-input:focus {
+            border-color: #006837;
+            outline: none;
+        }
+
+        .flat-button {
+            border-radius: 2px;
+            transition: filter 0.2s;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md">
+        <!-- CONTENEDOR PRINCIPAL -->
+        <div class="flat-card p-8">
+            
+            <!-- CABECERA DEL LOGIN -->
+            <div class="text-center mb-8">
+                <div class="inline-block bg-unphu p-3 mb-4">
+                    <!-- Placeholder para el logo de la UNPHU -->
+                    <div class="w-12 h-12 bg-white flex items-center justify-center text-xs font-bold text-unphu">
+                        UNPHU
+                    </div>
+                </div>
+                <h1 class="text-xl font-bold uppercase tracking-tight text-gray-800">Gestión de Tesis</h1>
+                <p class="text-xs text-gray-500 mt-2 uppercase tracking-widest">Acceso al Sistema Académico</p>
+            </div>
+
+            <!-- FORMULARIO (MÉTODO POST PARA DJANGO) -->
+            <form action="#" method="POST" class="space-y-6">
+                <!-- El tag de Django para seguridad iría aquí: {% csrf_token %} -->
+                
+                <div>
+                    <label for="username" class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Matrícula o Código de Empleado</label>
+                    <input type="text" id="username" name="username" required 
+                        class="w-full p-3 text-sm flat-input bg-gray-50"
+                        placeholder="Ej: 19-0452 o XX99-9999">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Contraseña</label>
+                    <input type="password" id="password" name="password" required 
+                        class="w-full p-3 text-sm flat-input bg-gray-50"
+                        placeholder="••••••••">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 border-gray-300 rounded-none text-unphu focus:ring-0">
+                        <span class="text-xs text-gray-600">Recordarme</span>
+                    </label>
+                    <a href="#" class="text-xs text-unphu font-semibold hover:underline">¿Olvidó su contraseña?</a>
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-unphu text-white text-xs font-bold py-4 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- ENLACE DE REGISTRO / AYUDA -->
+            <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-500">
+                    ¿Problemas para acceder? <br> 
+                    <a href="#" class="text-unphu font-bold mt-1 inline-block">Contactar a Soporte Técnico UNPHU</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- PIE DE PÁGINA -->
+        <div class="mt-6 text-center">
+            <p class="text-[10px] text-gray-400 uppercase font-medium tracking-[0.2em]">
+                Universidad Nacional Pedro Henríquez Ureña
+            </p>
+            <p class="text-[9px] text-gray-400 mt-1">
+                © 2024 Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>
