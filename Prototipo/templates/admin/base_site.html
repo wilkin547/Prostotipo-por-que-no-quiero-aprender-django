@@ -1,0 +1,148 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }} | UNPHU Admin{% endblock %}</title>
+    
+    <!-- Tailwind CSS (Para el esqueleto) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fuentes -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    
+    <!-- CSS Nativo de Django (Necesario para que funcionen los formularios) -->
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static 'admin/css/base.css' %}{% endblock %}">
+    
+    <!-- TU CSS Personalizado (Para quitar las sombras a las tablas de Django) -->
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+    
+    <!-- Bloques internos de Django -->
+    {% block extrastyle %}{% endblock %}
+    {% block extrahead %}{% endblock %}
+    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+    
+    <style>
+        /* Correcciones de colisión entre Tailwind y Django */
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        #header { display: none !important; } /* Ocultamos el header feo por defecto de Django */
+        .breadcrumbs { display: none !important; } /* Ocultamos las migas de pan viejas */
+    </style>
+</head>
+
+<body class="flex h-screen overflow-hidden bg-[#f9fafb] text-gray-800 {% block bodyclass %}{% endblock %}" data-admin-utc-offset="{% now "Z" %}">
+
+    <!-- ========================================== -->
+    <!-- SIDEBAR LATERAL (ESTILO UNPHU)             -->
+    <!-- ========================================== -->
+    {% if not is_popup %}
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 z-20">
+        <!-- Logo / Brand -->
+        <div class="h-14 bg-[#006837] flex items-center justify-center px-4 shrink-0">
+            <a href="{% url 'admin:index' %}" class="text-white font-bold text-sm uppercase tracking-widest text-center">
+                Gestión de Tesis
+            </a>
+        </div>
+        
+        <!-- Navegación -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+            
+            <p class="text-[10px] font-bold text-gray-400 uppercase mt-2 mb-2 tracking-widest">Gestión Principal</p>
+            <a href="{% url 'admin:core_tesis_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-[#006837] border-l-4 border-transparent hover:border-[#006837] transition-colors rounded-r-sm">Tesis Registradas</a>
+            <a href="{% url 'admin:core_versiontesis_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-[#006837] border-l-4 border-transparent hover:border-[#006837] transition-colors rounded-r-sm">Versiones (Documentos)</a>
+            <a href="{% url 'admin:core_comentario_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-[#006837] border-l-4 border-transparent hover:border-[#006837] transition-colors rounded-r-sm">Comentarios</a>
+            
+            <p class="text-[10px] font-bold text-gray-400 uppercase mt-6 mb-2 tracking-widest">Usuarios</p>
+            <a href="{% url 'admin:core_estudiante_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:border-gray-300 transition-colors rounded-r-sm">Estudiantes</a>
+            <a href="{% url 'admin:core_profesor_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 border-l-4 border-transparent hover:border-gray-300 transition-colors rounded-r-sm">Profesores / Asesores</a>
+
+            <p class="text-[10px] font-bold text-gray-400 uppercase mt-6 mb-2 tracking-widest">Catálogos</p>
+            <a href="{% url 'admin:core_facultad_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Facultades</a>
+            <a href="{% url 'admin:core_carrera_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Carreras</a>
+            <a href="{% url 'admin:core_departamento_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Departamentos</a>
+            <a href="{% url 'admin:core_estatus_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Estatus Generales</a>
+
+            <p class="text-[10px] font-bold text-gray-400 uppercase mt-6 mb-2 tracking-widest">Ajustes</p>
+            <a href="{% url 'admin:auth_user_changelist' %}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">Cuentas de Acceso</a>
+        </nav>
+        
+        <!-- Perfil Usuario Sidebar -->
+        <div class="p-4 border-t border-gray-200 bg-gray-50 text-xs shrink-0">
+            {% if user.is_active and user.is_staff %}
+            <p class="font-semibold text-gray-800 uppercase tracking-wide">{{ user.get_username }}</p>
+            <div class="flex space-x-3 mt-2">
+                <a href="{% url 'admin:password_change' %}" class="text-gray-500 hover:text-[#006837]">Ajustes</a>
+                <a href="{% url 'admin:logout' %}" class="text-red-600 font-semibold hover:underline">Cerrar sesión</a>
+            </div>
+            {% endif %}
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- CONTENIDO CENTRAL (TOPBAR + TABLAS)        -->
+    <!-- ========================================== -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        
+        <!-- TOPBAR BLANCA -->
+        {% if not is_popup %}
+        <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10">
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                <!-- Migas de pan modernas -->
+                <a href="{% url 'admin:index' %}" class="hover:text-[#006837] font-semibold tracking-wide">Inicio</a>
+                {% if title %}
+                    <span class="text-gray-300 mx-2">/</span>
+                    <span class="text-gray-500">{{ title }}</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if site_url %}
+                    <a href="{{ site_url }}" class="text-[10px] font-bold uppercase text-[#006837] border border-[#006837] px-4 py-2 rounded-sm hover:bg-green-50 transition-colors">Ver Sistema Web</a>
+                {% endif %}
+            </div>
+        </header>
+        {% endif %}
+
+        <!-- ÁREA DE TRABAJO (Aquí carga Django sus formularios) -->
+        <div class="flex-1 overflow-y-auto p-8" id="content-main-scroll">
+            
+            <!-- Mensajes de Alerta -->
+            {% block messages %}
+                {% if messages %}
+                    <ul class="mb-6 space-y-2">
+                    {% for message in messages %}
+                      <li class="p-4 bg-green-50 border-l-4 border-[#006837] text-green-800 text-sm shadow-sm">{{ message|capfirst }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endblock messages %}
+
+            <!-- CAJA BLANCA PRINCIPAL -->
+            <div class="bg-white border border-gray-200 rounded-sm shadow-sm p-6">
+                <!-- Título Interno -->
+                {% block pretitle %}{% endblock %}
+                {% block content_title %}
+                    {% if title %}
+                        <h1 class="text-xl font-bold text-gray-800 mb-6 uppercase tracking-tight border-b border-gray-100 pb-4">
+                            {{ title }}
+                        </h1>
+                    {% endif %}
+                {% endblock %}
+                
+                <!-- Contenido Dinámico de Django -->
+                <div id="content" class="{% block coltype %}colM{% endblock %}">
+                    {% block content %}
+                    {% block object-tools %}{% endblock %}
+                    {{ content }}
+                    {% endblock %}
+                    {% block sidebar %}{% endblock %}
+                    <br class="clear">
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

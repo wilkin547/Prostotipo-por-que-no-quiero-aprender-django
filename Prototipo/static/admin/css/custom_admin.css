@@ -1,0 +1,231 @@
+/* * TEMA FLAT DESIGN UNPHU PARA DJANGO ADMIN 
+ * Basado en la paleta y estilo del Asesor Dashboard
+ */
+
+:root {
+    --primary: #006837; /* Verde UNPHU */
+    --primary-hover: #00502a;
+    --bg-main: #f9fafb; /* Gris muy claro (fondo general) */
+    --bg-surface: #ffffff; /* Blanco para tarjetas/paneles */
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+}
+
+/* --- TIPOGRAFÍA Y CUERPO GENERAL --- */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
+}
+
+/* --- CABECERA PRINCIPAL (TOPBAR) --- */
+#header {
+    background: var(--primary) !important;
+    color: white;
+    padding: 10px 20px;
+    box-shadow: none !important;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+}
+
+#branding h1 {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+#branding h1 a:link, #branding h1 a:visited {
+    color: white;
+}
+
+#user-tools {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+#user-tools a {
+    color: white;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+    padding: 2px 4px;
+}
+
+#user-tools a:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    text-decoration: none;
+}
+
+/* --- CONTENEDORES Y TARJETAS (ESTILO FLAT) --- */
+#content {
+    padding: 20px 40px;
+}
+
+.module {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 2px !important;
+    box-shadow: none !important; /* Elimina sombras de Django */
+    margin-bottom: 20px;
+}
+
+/* Cabeceras de las tablas/módulos */
+.module caption, .module h2 {
+    background: var(--bg-main) !important;
+    color: var(--text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.module caption a.section:link, .module caption a.section:visited {
+    color: var(--text-muted) !important;
+}
+
+/* --- TABLAS DE DATOS (LISTADOS) --- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+thead th {
+    background: var(--bg-surface) !important;
+    color: var(--text-muted) !important;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-color) !important;
+    padding: 12px 10px;
+}
+
+thead th a:link, th a:visited {
+    color: var(--text-muted);
+}
+
+tbody tr {
+    background: var(--bg-surface) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: background-color 0.15s;
+}
+
+tbody tr:hover {
+    background-color: #f3f4f6 !important; /* Efecto hover sutil */
+}
+
+tbody td, tbody th {
+    font-size: 13px;
+    color: var(--text-main);
+    padding: 12px 10px;
+}
+
+/* Enlaces principales en las tablas (ej. nombre de tesis) */
+tbody th a {
+    color: var(--primary) !important;
+    font-weight: 600;
+}
+
+/* --- BOTONES Y ACCIONES --- */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid #d1d5db;
+    border-radius: 2px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: none !important;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #f3f4f6;
+}
+
+/* Botón principal (Guardar, Añadir) */
+.button.default, input[type=submit].default, .submit-row input.default {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+
+.button.default:hover, input[type=submit].default:hover {
+    background: var(--primary-hover) !important;
+}
+
+/* Botones de acción lateral (Añadir/Cambiar en el Dashboard) */
+a.addlink, a.changelink {
+    color: var(--primary) !important;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+a.addlink:before, a.changelink:before {
+    filter: grayscale(100%) opacity(50%); /* Hace los iconos grises para no desentonar */
+}
+
+/* --- FORMULARIOS (VISTA DETALLE) --- */
+.aligned label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+input[type=text], input[type=password], input[type=email], input[type=url], input[type=number], input[type=tel], textarea, select, .vTextField {
+    border: 1px solid #d1d5db !important;
+    border-radius: 2px !important;
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    background-color: var(--bg-main) !important;
+    box-shadow: none !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary) !important;
+    outline: none !important;
+    background-color: var(--bg-surface) !important;
+}
+
+.submit-row {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-color) !important;
+    border-top: none !important;
+    box-shadow: none !important;
+    border-radius: 0 0 2px 2px;
+}
+
+/* --- BREADCRUMBS (MIGAS DE PAN) --- */
+.breadcrumbs {
+    background: var(--bg-surface) !important;
+    color: var(--text-muted) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 10px 20px !important;
+    font-size: 12px !important;
+}
+
+.breadcrumbs a {
+    color: var(--primary) !important;
+    font-weight: 500;
+}
+
+/* Login Panel Admin */
+.login #header {
+    justify-content: center;
+}
+.login #content-main {
+    float: none;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 400px;
+}
