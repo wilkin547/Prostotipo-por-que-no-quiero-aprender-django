@@ -109,6 +109,8 @@ class Comentario(models.Model):
     contenido = models.TextField()
     fecha = models.DateField(auto_now_add=True)
     hora = models.TimeField(auto_now_add=True)
+    version = models.ForeignKey('VersionTesis', on_delete=models.CASCADE, related_name='comentarios')
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Comentario {self.codigo} de Tesis {self.tesis.codigo}"

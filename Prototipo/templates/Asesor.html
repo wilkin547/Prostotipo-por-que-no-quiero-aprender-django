@@ -35,14 +35,13 @@
     <header class="bg-unphu text-white h-14 flex items-center justify-between px-6 shrink-0">
         <div class="flex items-center space-x-4">
             <div class="bg-white p-1 rounded-sm">
-                <!-- Placeholder Logo UNPHU -->
-                <div class="w-8 h-8 bg-gray-200 flex items-center justify-center text-[10px] text-black font-bold">LOGO</div>
+                <div class="w-8 h-8 bg-white flex items-center justify-center text-[10px] text-unphu font-bold">UNPHU</div>
             </div>
-            <h1 class="text-sm font-semibold tracking-wider uppercase">Gestión de Tesis - UNPHU</h1>
+            <h1 class="text-sm font-semibold tracking-wider uppercase">Gestión de Tesis</h1>
         </div>
         <div class="flex items-center space-x-6 text-sm">
-            <span class="opacity-90">Asesor: Dr. Roberto Martínez</span>
-            <a href="#" class="bg-white/10 hover:bg-white/20 px-3 py-1 flat-button uppercase text-xs font-bold">Cerrar Sesión</a>
+            <span class="opacity-90">Asesor(a): {{ request.user.first_name }} {{ request.user.last_name }}</span>
+            <a href="{% url 'logout' %}" class="bg-white/10 hover:bg-white/20 px-3 py-1 flat-button uppercase text-xs font-bold">Cerrar Sesión</a>
         </div>
     </header>
 
@@ -54,127 +53,121 @@
                 <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Mis Estudiantes Asignados</h2>
             </div>
             <div class="flex-1 overflow-y-auto">
-                <!-- Estudiante 1 -->
-                <div class="p-4 border-b border-gray-100 bg-green-50 border-l-4 border-l-unphu cursor-pointer">
-                    <p class="text-[10px] font-bold text-unphu uppercase mb-1">En Revisión</p>
-                    <p class="text-sm font-semibold">Juan Pérez - 19-0452</p>
-                    <p class="text-xs text-gray-500 truncate">Implementación de IA en Logística...</p>
-                    <p class="text-[10px] text-gray-400 mt-2">Versión 3 • 12 Oct 2023</p>
+                
+                {% for tesis in tesis_asignadas %}
+                <!-- Tarjeta de Tesis Dinámica (Ahora es un Enlace) -->
+                <a href="?tesis={{ tesis.id }}" class="block p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors {% if tesis_activa.id == tesis.id %}bg-green-50 border-l-4 border-l-unphu{% else %}border-l-4 border-transparent{% endif %}">
+                    <p class="text-[10px] font-bold text-unphu uppercase mb-1">{{ tesis.estado.nombre }}</p>
+                    
+                    <p class="text-sm font-semibold text-gray-800">
+                        {% for estudiante in tesis.estudiantes.all %}
+                            {{ estudiante.user.first_name }} {{ estudiante.user.last_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p class="text-xs text-gray-500 truncate" title="{{ tesis.titulo }}">{{ tesis.titulo }}</p>
+                    
+                    {% with ultima_version=tesis.versiones.first %}
+                        {% if ultima_version %}
+                        <p class="text-[10px] text-gray-400 mt-2 font-mono">V. {{ ultima_version.codigo_version }} • {{ ultima_version.fecha|date:"d M Y" }}</p>
+                        {% else %}
+                        <p class="text-[10px] text-gray-400 mt-2 italic">Sin documentos subidos</p>
+                        {% endif %}
+                    {% endwith %}
+                </a>
+                {% empty %}
+                <div class="p-6 text-center text-gray-500">
+                    <p class="text-sm font-medium">Sin asignaciones</p>
+                    <p class="text-xs mt-1">Aún no tienes tesis asignadas para revisión.</p>
                 </div>
+                {% endfor %}
 
-                <!-- Estudiante 2 -->
-                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
-                    <p class="text-[10px] font-bold text-yellow-600 uppercase mb-1">Pendiente</p>
-                    <p class="text-sm font-semibold">María García - 20-0110</p>
-                    <p class="text-xs text-gray-500 truncate">Sostenibilidad en Arquitectura...</p>
-                    <p class="text-[10px] text-gray-400 mt-2">Versión 1 • 15 Oct 2023</p>
-                </div>
-
-                <!-- Estudiante 3 (Aprobado) -->
-                <div class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer opacity-70">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-1">Aprobado para Defensa</p>
-                    <p class="text-sm font-semibold">Carlos Ruiz - 18-0992</p>
-                    <p class="text-xs text-gray-500 truncate">Análisis de Suelos en RD...</p>
-                    <p class="text-[10px] text-gray-400 mt-2">Finalizado • 01 Oct 2023</p>
-                </div>
             </div>
         </aside>
 
         <!-- ÁREA CENTRAL: VISOR DE DOCUMENTO -->
         <section class="flex-1 flex flex-col bg-gray-100 border-r border-gray-200">
-            <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between">
-                <div>
-                    <h3 class="text-sm font-bold uppercase">Expediente: T-2023-0452</h3>
-                    <p class="text-xs text-gray-500">Documento: <span class="font-medium">Tesis_V3_Juan_Perez.pdf</span> (4.2 MB)</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button">Descargar PDF</button>
-                    <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button">Ver Historial</button>
-                </div>
-            </div>
-            
-            <!-- Simulador de Visor PDF -->
-            <div class="flex-1 p-8 overflow-y-auto flex justify-center">
-                <div class="bg-white w-[800px] min-h-[1100px] border border-gray-300 p-16 shadow-sm">
-                    <div class="text-center mb-12">
-                        <p class="text-sm font-bold uppercase tracking-widest mb-2">Universidad Nacional Pedro Henríquez Ureña</p>
-                        <p class="text-xs uppercase mb-8">Facultad de Ciencias y Tecnología</p>
-                        <div class="h-[2px] bg-black w-24 mx-auto mb-10"></div>
-                        <h1 class="text-2xl font-serif font-bold uppercase leading-relaxed">Implementación de Algoritmos de Inteligencia Artificial para la Optimización de Rutas Logísticas en Santo Domingo</h1>
+            {% if tesis_activa %}
+                <!-- Cabecera del Documento Activo -->
+                <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase text-gray-800">Expediente: {{ tesis_activa.codigo }}</h3>
+                        {% with ultima_version=tesis_activa.versiones.first %}
+                            <p class="text-xs text-gray-500">Documento actual: 
+                                <span class="font-medium">
+                                    {% if ultima_version %}{{ ultima_version.archivo.name|slice:"15:" }}{% else %}Ningún archivo disponible{% endif %}
+                                </span>
+                            </p>
+                        {% endwith %}
                     </div>
-                    <div class="space-y-6 text-justify text-sm leading-loose text-gray-800">
-                        <p class="font-bold">Capítulo I: Introducción</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat...</p>
-                        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                        <div class="bg-yellow-50 p-4 border-l-4 border-yellow-400 text-xs italic">
-                            Nota del sistema: Este es un visor de solo lectura para revisión académica.
-                        </div>
+                    <div class="flex space-x-2">
+                        {% with ultima_version=tesis_activa.versiones.first %}
+                            {% if ultima_version and ultima_version.archivo %}
+                            <a href="{{ ultima_version.archivo.url }}" target="_blank" class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700">Abrir PDF en Nueva Pestaña</a>
+                            {% endif %}
+                        {% endwith %}
+                        <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700 bg-white">Ver Historial de Versiones</button>
                     </div>
                 </div>
-            </div>
+                
+                <!-- VISOR DE PDF REAL -->
+                <div class="flex-1 p-0 overflow-hidden bg-gray-300 flex justify-center">
+                    {% with ultima_version=tesis_activa.versiones.first %}
+                        {% if ultima_version and ultima_version.archivo %}
+                            <!-- Aquí cargamos el PDF real directamente en la web -->
+                            <iframe src="{{ ultima_version.archivo.url }}" class="w-full h-full border-0 shadow-inner"></iframe>
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                                <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <p class="text-lg font-medium">No hay documento adjunto</p>
+                                <p class="text-sm mt-2">Los estudiantes aún no han subido ninguna versión de esta tesis.</p>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            {% else %}
+                <div class="flex-1 flex items-center justify-center text-gray-400">
+                    <p class="text-lg">Seleccione una tesis del panel izquierdo para ver el documento.</p>
+                </div>
+            {% endif %}
         </section>
 
         <!-- PANEL DERECHO: COMENTARIOS Y ESTADO -->
-        <aside class="w-96 flat-card flex flex-col shrink-0">
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
-            </div>
-            
-            <!-- Historial de Comentarios -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                <!-- Comentario 1 -->
-                <div class="bg-gray-50 p-3 border border-gray-200 text-xs">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-bold text-unphu">Tú (Asesor)</span>
-                        <span class="text-[10px] text-gray-400 font-mono">12/10/2023 10:45 AM</span>
-                    </div>
-                    <p class="text-gray-700 leading-relaxed">Juan, la sección de bibliografía debe seguir el formato APA 7ma edición. Por favor revisa las citas de la página 14.</p>
+        <aside class="w-[380px] flat-card flex flex-col shrink-0">
+            {% if tesis_activa %}
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
                 </div>
-
-                <!-- Comentario 2 -->
-                <div class="bg-white p-3 border border-gray-200 text-xs italic">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="font-bold text-blue-800">Juan Pérez</span>
-                        <span class="text-[10px] text-gray-400 font-mono">12/10/2023 11:15 AM</span>
-                    </div>
-                    <p class="text-gray-700">Entendido profesor, ya estoy trabajando en las correcciones indicadas.</p>
-                </div>
-            </div>
-
-            <!-- Formulario de Nuevo Comentario -->
-            <div class="p-4 border-t border-gray-200 bg-white">
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
-                <textarea class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones..."></textarea>
                 
-                <div class="mt-4 space-y-2">
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Cambiar Estado de Tesis</label>
-                    <select class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
-                        <option>En Revisión</option>
-                        <option>Requiere Correcciones Mayores</option>
-                        <option>Aprobado para Defensa</option>
-                        <option>Rechazado</option>
-                    </select>
+                <!-- Historial de Comentarios -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="text-center text-xs text-gray-400 italic mt-10">
+                        No hay comentarios en esta versión.<br>Inicie la evaluación debajo.
+                    </div>
                 </div>
 
-                <button class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
-                    Enviar Retroalimentación
-                </button>
-            </div>
+                <!-- Formulario de Nuevo Comentario -->
+                <div class="p-4 border-t border-gray-200 bg-white">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
+                    <textarea class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones sobre el documento..."></textarea>
+                    
+                    <div class="mt-4 space-y-2">
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Cambiar Estado de Tesis</label>
+                        <select class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
+                            <option {% if tesis_activa.estado.nombre == 'En Revisión' %}selected{% endif %}>En Revisión</option>
+                            <option>Requiere Correcciones Mayores</option>
+                            <option>Aprobado para Defensa</option>
+                            <option>Rechazado</option>
+                        </select>
+                    </div>
+
+                    <button class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
+                        Enviar Retroalimentación
+                    </button>
+                </div>
+            {% endif %}
         </aside>
 
     </main>
-
-    <!-- FOOTER MODO PRUEBAS -->
-    <footer class="bg-gray-200 h-8 flex items-center px-4 justify-between shrink-0">
-        <div class="flex items-center space-x-4">
-            <span class="text-[10px] text-gray-500 uppercase font-bold">Entorno de Pruebas (SQLite)</span>
-            <span class="text-[10px] text-gray-400">|</span>
-            <span class="text-[10px] text-gray-500">Registros cargados: 14 tesis</span>
-        </div>
-        <div class="text-[10px] text-gray-400 font-mono">
-            UNPHU-THESIS-MANAGER v0.1-alpha
-        </div>
-    </footer>
 
 </body>
 </html>

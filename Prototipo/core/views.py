@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
+from .models import Tesis
 
 # 1. Vista de Login Inteligente
 class CustomLoginView(LoginView):
@@ -23,17 +24,37 @@ class CustomLoginView(LoginView):
         elif hasattr(user, 'estudiante'):
             return reverse_lazy('estudiante_dashboard')
             
-        # Por defecto, recarga el login
-        return reverse_lazy('login')
+        # SOLUCIÓN: Si el usuario no tiene ningún rol, va al admin
+        return reverse_lazy('admin:index')
 
 # 2. Vista del Panel del Asesor
 @login_required
 def asesor_dashboard(request):
-    # Aquí cargamos el HTML del Asesor que hicimos antes
-    return render(request, 'asesor_dashboard.html')
+    # Obtenemos al profesor logueado
+    profesor = request.user.profesor
+    
+    # Buscamos las tesis donde este profesor es el asesor
+    tesis_asignadas = Tesis.objects.filter(asesor=profesor).prefetch_related('estudiantes', 'versiones')
+    
+    # Lógica para saber qué tesis estamos viendo en el centro
+    tesis_id = request.GET.get('tesis')
+    if tesis_id:
+        tesis_activa = tesis_asignadas.filter(id=tesis_id).first()
+    else:
+        # Si no selecciona ninguna, muestra la primera de la lista por defecto
+        tesis_activa = tesis_asignadas.first() 
+    
+    # Le enviamos esos datos al HTML
+    context = {
+        'tesis_asignadas': tesis_asignadas,
+        'tesis_activa': tesis_activa,
+    }
+    
+    # Apuntamos a tu archivo físico Asesor.html
+    return render(request, 'Asesor.html', context)
 
 # 3. Vista del Panel del Estudiante
 @login_required
 def estudiante_dashboard(request):
-    # Asumiendo que guardaste el HTML del estudiante con este nombre
+    # Apuntamos a tu archivo físico Estudiantes.html
     return render(request, 'Estudiantes.html')
