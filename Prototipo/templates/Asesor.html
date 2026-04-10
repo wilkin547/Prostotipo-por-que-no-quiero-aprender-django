@@ -55,7 +55,7 @@
             <div class="flex-1 overflow-y-auto">
                 
                 {% for tesis in tesis_asignadas %}
-                <!-- Tarjeta de Tesis Dinámica (Ahora es un Enlace) -->
+                <!-- Tarjeta de Tesis Dinámica -->
                 <a href="?tesis={{ tesis.id }}" class="block p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors {% if tesis_activa.id == tesis.id %}bg-green-50 border-l-4 border-l-unphu{% else %}border-l-4 border-transparent{% endif %}">
                     <p class="text-[10px] font-bold text-unphu uppercase mb-1">{{ tesis.estado.nombre }}</p>
                     
@@ -66,6 +66,7 @@
                     </p>
                     <p class="text-xs text-gray-500 truncate" title="{{ tesis.titulo }}">{{ tesis.titulo }}</p>
                     
+                    <!-- En el sidebar siempre mostramos la fecha de la última versión subida -->
                     {% with ultima_version=tesis.versiones.first %}
                         {% if ultima_version %}
                         <p class="text-[10px] text-gray-400 mt-2 font-mono">V. {{ ultima_version.codigo_version }} • {{ ultima_version.fecha|date:"d M Y" }}</p>
@@ -90,28 +91,34 @@
                 <!-- Cabecera del Documento Activo -->
                 <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
                     <div>
-                        <h3 class="text-sm font-bold uppercase text-gray-800">Expediente: {{ tesis_activa.codigo }}</h3>
-                        {% with ultima_version=tesis_activa.versiones.first %}
-                            <p class="text-xs text-gray-500">Documento actual: 
-                                <span class="font-medium">
-                                    {% if ultima_version %}{{ ultima_version.archivo.name|slice:"15:" }}{% else %}Ningún archivo disponible{% endif %}
-                                </span>
-                            </p>
+                        {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
+                        <h3 class="text-sm font-bold uppercase text-gray-800 flex items-center">
+                            Expediente: {{ tesis_activa.codigo }}
+                            <!-- Etiqueta visual si está viendo una versión antigua -->
+                            {% if ultima_version and tesis_activa.versiones.first and ultima_version.id != tesis_activa.versiones.first.id %}
+                                <span class="ml-3 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[9px] uppercase font-bold rounded-sm border border-yellow-200 tracking-wider">Viendo versión anterior</span>
+                            {% endif %}
+                        </h3>
+                        <p class="text-xs text-gray-500">Documento actual: 
+                            <span class="font-medium">
+                                {% if ultima_version %}{{ ultima_version.archivo.name|slice:"15:" }}{% else %}Ningún archivo disponible{% endif %}
+                            </span>
+                        </p>
                         {% endwith %}
                     </div>
                     <div class="flex space-x-2">
-                        {% with ultima_version=tesis_activa.versiones.first %}
+                        {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
                             {% if ultima_version and ultima_version.archivo %}
                             <a href="{{ ultima_version.archivo.url }}" target="_blank" class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700">Abrir PDF en Nueva Pestaña</a>
                             {% endif %}
                         {% endwith %}
-                        <button class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700 bg-white">Ver Historial de Versiones</button>
+                        <button onclick="document.getElementById('modalHistorial').classList.remove('hidden')" class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700 bg-white transition-colors">Ver Historial de Versiones</button>
                     </div>
                 </div>
                 
-                <!-- VISOR DE PDF REAL (Usando embed para mayor compatibilidad) -->
+                <!-- VISOR DE PDF REAL -->
                 <div class="flex-1 p-0 overflow-hidden bg-gray-300 flex justify-center">
-                    {% with ultima_version=tesis_activa.versiones.first %}
+                    {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
                         {% if ultima_version and ultima_version.archivo %}
                             <embed src="{{ ultima_version.archivo.url }}" type="application/pdf" class="w-full h-full border-0 shadow-inner" />
                         {% else %}
@@ -137,13 +144,13 @@
                     <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
                 </div>
                 
-                <!-- Historial de Comentarios Dinámico -->
+                <!-- Historial de Comentarios Dinámico (Para la versión activa) -->
                 <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                    {% with ultima_version=tesis_activa.versiones.first %}
+                    {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
                         {% if ultima_version.comentarios.all %}
                             {% for comentario in ultima_version.comentarios.all %}
                             
-                                <!-- TARJETA DE COMENTARIO CON COLOR DINÁMICO -->
+                                <!-- TARJETA DE COMENTARIO -->
                                 <div class="border p-3 rounded-sm relative transition-colors duration-300
                                     {% if comentario.estatus_comentario.nombre == 'Corregido' %}bg-green-50 border-green-200
                                     {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}bg-red-50 border-red-200
@@ -213,6 +220,13 @@
                     <!-- Campo Oculto para identificar la acción -->
                     <input type="hidden" name="action" value="new_comment">
                     
+                    <!-- NUEVO: Agregamos el ID de la versión para que el comentario se asigne a la versión que estamos viendo -->
+                    {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
+                        {% if ultima_version %}
+                            <input type="hidden" name="version_id" value="{{ ultima_version.id }}">
+                        {% endif %}
+                    {% endwith %}
+                    
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
                     <textarea name="comentario" required class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones sobre el documento..."></textarea>
                     
@@ -233,6 +247,87 @@
         </aside>
 
     </main>
+
+    <!-- ========================================== -->
+    <!-- MODAL: HISTORIAL DE VERSIONES              -->
+    <!-- ========================================== -->
+    {% if tesis_activa %}
+    <div id="modalHistorial" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-sm shadow-2xl w-full max-w-3xl flex flex-col max-h-[80vh] border border-gray-200">
+            
+            <!-- Cabecera del Modal -->
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <div>
+                    <h2 class="text-sm font-bold uppercase text-gray-800 tracking-wider">Historial de Entregas</h2>
+                    <p class="text-[10px] text-gray-500 uppercase mt-1">Expediente: {{ tesis_activa.codigo }}</p>
+                </div>
+                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors p-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Cuerpo del Modal (Tabla de Versiones) -->
+            <div class="p-0 overflow-y-auto flex-1 bg-white">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+                        <tr>
+                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Versión</th>
+                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fecha de Subida</th>
+                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estatus</th>
+                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-right">Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for version in tesis_activa.versiones.all %}
+                        
+                        <!-- Si esta fila es la versión que estamos viendo, la resaltamos un poco -->
+                        {% with u_activa=version_activa|default:tesis_activa.versiones.first %}
+                        <tr class="transition-colors {% if u_activa.id == version.id %}bg-blue-50/50{% else %}hover:bg-green-50/50{% endif %}">
+                        {% endwith %}
+                        
+                            <td class="p-3">
+                                <span class="text-xs font-bold font-mono text-[#006837] bg-green-50 px-2 py-1 rounded-sm border border-green-100">{{ version.codigo_version }}</span>
+                            </td>
+                            <td class="p-3">
+                                <p class="text-xs text-gray-800 font-medium">{{ version.fecha|date:"d M Y" }}</p>
+                                <p class="text-[10px] text-gray-400">{{ version.nombre_entregable }}</p>
+                            </td>
+                            <td class="p-3">
+                                <span class="text-[10px] uppercase font-bold text-gray-600">{{ version.estatus_version.nombre }}</span>
+                            </td>
+                            <td class="p-3 text-right">
+                                {% if version.archivo %}
+                                    <div class="flex justify-end space-x-1">
+                                        <!-- BOTÓN PARA CARGAR EN EL PANEL -->
+                                        <a href="?tesis={{ tesis_activa.id }}&version={{ version.id }}" class="inline-flex items-center space-x-1 text-[10px] font-bold uppercase text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-sm transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            <span>Cargar en Panel</span>
+                                        </a>
+                                        <!-- BOTÓN PARA ABRIR EN NUEVA PESTAÑA -->
+                                        <a href="{{ version.archivo.url }}" target="_blank" class="inline-flex items-center text-[#006837] bg-green-50 border border-[#006837] hover:bg-green-100 px-2 py-1.5 rounded-sm transition-colors" title="Abrir en nueva pestaña">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <span class="text-xs text-gray-400 italic">No disponible</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pie del Modal -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50 text-right">
+                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-xs font-bold border border-gray-300 px-4 py-2 hover:bg-gray-100 flat-button text-gray-700 bg-white transition-colors">
+                    Cerrar Historial
+                </button>
+            </div>
+            
+        </div>
+    </div>
+    {% endif %}
 
 </body>
 </html>
