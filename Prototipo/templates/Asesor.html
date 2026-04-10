@@ -109,12 +109,11 @@
                     </div>
                 </div>
                 
-                <!-- VISOR DE PDF REAL -->
+                <!-- VISOR DE PDF REAL (Usando embed para mayor compatibilidad) -->
                 <div class="flex-1 p-0 overflow-hidden bg-gray-300 flex justify-center">
                     {% with ultima_version=tesis_activa.versiones.first %}
                         {% if ultima_version and ultima_version.archivo %}
-                            <!-- Aquí cargamos el PDF real directamente en la web -->
-                            <iframe src="{{ ultima_version.archivo.url }}" class="w-full h-full border-0 shadow-inner"></iframe>
+                            <embed src="{{ ultima_version.archivo.url }}" type="application/pdf" class="w-full h-full border-0 shadow-inner" />
                         {% else %}
                             <div class="flex flex-col items-center justify-center h-full text-gray-500">
                                 <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -138,32 +137,98 @@
                     <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
                 </div>
                 
-                <!-- Historial de Comentarios -->
+                <!-- Historial de Comentarios Dinámico -->
                 <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                    <div class="text-center text-xs text-gray-400 italic mt-10">
-                        No hay comentarios en esta versión.<br>Inicie la evaluación debajo.
-                    </div>
+                    {% with ultima_version=tesis_activa.versiones.first %}
+                        {% if ultima_version.comentarios.all %}
+                            {% for comentario in ultima_version.comentarios.all %}
+                            
+                                <!-- TARJETA DE COMENTARIO CON COLOR DINÁMICO -->
+                                <div class="border p-3 rounded-sm relative transition-colors duration-300
+                                    {% if comentario.estatus_comentario.nombre == 'Corregido' %}bg-green-50 border-green-200
+                                    {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}bg-red-50 border-red-200
+                                    {% else %}bg-blue-50 border-blue-200{% endif %}">
+                                    
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-[10px] font-bold uppercase
+                                            {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-800
+                                            {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-800
+                                            {% else %}text-blue-800{% endif %}">
+                                            {{ comentario.autor.get_full_name }}
+                                        </span>
+                                        <span class="text-[9px]
+                                            {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-600
+                                            {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-600
+                                            {% else %}text-blue-500{% endif %}">
+                                            {{ comentario.fecha|date:"d M Y" }} a las {{ comentario.hora|time:"H:i" }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-700 leading-relaxed">{{ comentario.contenido }}</p>
+                                    
+                                    <!-- Formulario para Cambiar Estado del Comentario Individual -->
+                                    <div class="mt-3 pt-2 border-t flex justify-end
+                                        {% if comentario.estatus_comentario.nombre == 'Corregido' %}border-green-200/50
+                                        {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}border-red-200/50
+                                        {% else %}border-blue-200/50{% endif %}">
+                                        <form method="POST" class="flex items-center space-x-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_comment_status">
+                                            <input type="hidden" name="comentario_id" value="{{ comentario.id }}">
+                                            
+                                            <span class="text-[9px] uppercase font-bold
+                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-700
+                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-700
+                                                {% else %}text-blue-600{% endif %}">Estado:</span>
+                                                
+                                            <select name="estado_comentario" class="text-[10px] p-1 border bg-white focus:outline-none text-gray-700 rounded-sm
+                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}border-green-300
+                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}border-red-300
+                                                {% else %}border-blue-200{% endif %}">
+                                                <option value="Pendiente" {% if comentario.estatus_comentario.nombre == 'Pendiente' or not comentario.estatus_comentario %}selected{% endif %}>Pendiente</option>
+                                                <option value="Corregido" {% if comentario.estatus_comentario.nombre == 'Corregido' %}selected{% endif %}>Corregido</option>
+                                                <option value="No Atendido" {% if comentario.estatus_comentario.nombre == 'No Atendido' %}selected{% endif %}>No Atendido</option>
+                                            </select>
+                                            
+                                            <button type="submit" class="text-[9px] font-bold px-2 py-1 transition-colors rounded-sm
+                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}bg-green-100 text-green-700 hover:bg-green-200
+                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}bg-red-100 text-red-700 hover:bg-red-200
+                                                {% else %}bg-blue-100 text-blue-700 hover:bg-blue-200{% endif %}">
+                                                Guardar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-xs text-gray-400 italic mt-10">
+                                No hay comentarios en esta versión.<br>Inicie la evaluación debajo.
+                            </div>
+                        {% endif %}
+                    {% endwith %}
                 </div>
 
-                <!-- Formulario de Nuevo Comentario -->
-                <div class="p-4 border-t border-gray-200 bg-white">
+                <!-- FORMULARIO DE NUEVO COMENTARIO -->
+                <form method="POST" class="p-4 border-t border-gray-200 bg-white">
+                    {% csrf_token %}
+                    <!-- Campo Oculto para identificar la acción -->
+                    <input type="hidden" name="action" value="new_comment">
+                    
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
-                    <textarea class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones sobre el documento..."></textarea>
+                    <textarea name="comentario" required class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones sobre el documento..."></textarea>
                     
                     <div class="mt-4 space-y-2">
                         <label class="block text-[10px] font-bold text-gray-400 uppercase">Cambiar Estado de Tesis</label>
-                        <select class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
-                            <option {% if tesis_activa.estado.nombre == 'En Revisión' %}selected{% endif %}>En Revisión</option>
-                            <option>Requiere Correcciones Mayores</option>
-                            <option>Aprobado para Defensa</option>
-                            <option>Rechazado</option>
+                        <select name="estado" class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
+                            <option value="En Revisión" {% if tesis_activa.estado.nombre == 'En Revisión' %}selected{% endif %}>En Revisión</option>
+                            <option value="Requiere Correcciones Mayores" {% if tesis_activa.estado.nombre == 'Requiere Correcciones Mayores' %}selected{% endif %}>Requiere Correcciones Mayores</option>
+                            <option value="Aprobado para Defensa" {% if tesis_activa.estado.nombre == 'Aprobado para Defensa' %}selected{% endif %}>Aprobado para Defensa</option>
                         </select>
                     </div>
 
-                    <button class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
+                    <button type="submit" class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
                         Enviar Retroalimentación
                     </button>
-                </div>
+                </form>
             {% endif %}
         </aside>
 
