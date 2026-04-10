@@ -5,242 +5,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel del Asesor - UNPHU</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #111827; }
-        .unphu-green { color: #006837; }
-        .bg-unphu { background-color: #006837; }
-        .border-unphu { border-color: #006837; }
+        :root {
+            --unphu-green: #006837;
+            --unphu-green-dark: #004d29;
+            --bg-canvas: #f9fafb;
+            --text-main: #1f2937;
+            --border-color: #e5e7eb;
+        }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-canvas); 
+            color: var(--text-main); 
+            margin: 0;
+        }
+        .unphu-green { color: var(--unphu-green); }
+        .bg-unphu { background-color: var(--unphu-green); }
+        .border-unphu { border-color: var(--unphu-green); }
         
-        /* Estilo Flat - Sin sombras */
+        /* Estilo Flat Estricto - Sin sombras, sin bordes redondeados exagerados */
+        .no-shadow { box-shadow: none !important; }
         .flat-card {
             background: white;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border-color);
+            border-radius: 0;
         }
         
         .flat-button {
-            transition: all 0.2s;
-            border-radius: 2px;
+            transition: background-color 0.2s;
+            border-radius: 0;
+            box-shadow: none;
         }
 
-        /* Scrollbar minimalista para lectura */
-        ::-webkit-scrollbar { width: 6px; }
+        .input-flat {
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            background-color: #f9fafb;
+            transition: border-color 0.2s;
+        }
+        .input-flat:focus {
+            outline: none;
+            border-color: var(--unphu-green);
+            background-color: white;
+        }
+
+        /* Scrollbar minimalista y sobrio */
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #006837; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        .status-badge {
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 0;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- BARRA DE NAVEGACIÓN SUPERIOR (TOPBAR) -->
-    <header class="bg-unphu text-white h-14 flex items-center justify-between px-6 shrink-0">
+    <header class="bg-unphu text-white h-14 flex items-center justify-between px-6 shrink-0 no-shadow">
         <div class="flex items-center space-x-4">
-            <div class="bg-white p-1 rounded-sm">
-                <div class="w-8 h-8 bg-white flex items-center justify-center text-[10px] text-unphu font-bold">UNPHU</div>
+            <div class="font-bold text-xl tracking-tight uppercase">UNPHU | <span class="font-light italic">Tesis</span></div>
+            <div class="hidden md:flex items-center ml-4 px-4 border-l border-white/30">
+                <span class="text-xs uppercase font-bold tracking-widest">Portal del Asesor</span>
             </div>
-            <h1 class="text-sm font-semibold tracking-wider uppercase">Gestión de Tesis</h1>
         </div>
         <div class="flex items-center space-x-6 text-sm">
-            <span class="opacity-90">Asesor(a): {{ request.user.first_name }} {{ request.user.last_name }}</span>
-            <a href="{% url 'logout' %}" class="bg-white/10 hover:bg-white/20 px-3 py-1 flat-button uppercase text-xs font-bold">Cerrar Sesión</a>
+            <span class="font-bold hidden md:inline">{{ request.user.first_name }} {{ request.user.last_name }}</span>
+            
+            <form action="{% url 'logout' %}" method="post" class="inline m-0 p-0">
+                {% csrf_token %}
+                <button type="submit" class="border border-white px-4 py-1 hover:bg-white hover:text-green-900 transition font-bold uppercase text-xs flat-button">
+                    Cerrar Sesión
+                </button>
+            </form>
         </div>
     </header>
 
     <main class="flex flex-1 overflow-hidden">
         
-        <!-- SIDEBAR: LISTA DE ESTUDIANTES -->
-        <aside class="w-80 flat-card flex flex-col shrink-0 border-t-0 border-l-0 border-b-0">
+        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0">
             <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Mis Estudiantes Asignados</h2>
+                <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Mis Expedientes</h2>
             </div>
             <div class="flex-1 overflow-y-auto">
                 
                 {% for tesis in tesis_asignadas %}
-                <!-- Tarjeta de Tesis Dinámica -->
-                <a href="?tesis={{ tesis.id }}" class="block p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors {% if tesis_activa.id == tesis.id %}bg-green-50 border-l-4 border-l-unphu{% else %}border-l-4 border-transparent{% endif %}">
-                    <p class="text-[10px] font-bold text-unphu uppercase mb-1">{{ tesis.estado.nombre }}</p>
+                <a href="?tesis={{ tesis.id }}" class="block p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors {% if tesis_activa.id == tesis.id %}bg-gray-50 border-l-4 border-l-unphu{% else %}border-l-4 border-transparent{% endif %}">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="status-badge 
+                            {% if tesis.estado.nombre == 'Aprobado para Defensa' %}bg-green-100 text-green-800
+                            {% elif tesis.estado.nombre == 'En Revisión' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ tesis.estado.nombre }}
+                        </span>
+                        <span class="text-[10px] font-mono text-gray-500">{{ tesis.codigo }}</span>
+                    </div>
                     
-                    <p class="text-sm font-semibold text-gray-800">
+                    <p class="text-sm font-bold text-gray-900 mb-1">
                         {% for estudiante in tesis.estudiantes.all %}
                             {{ estudiante.user.first_name }} {{ estudiante.user.last_name }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     </p>
-                    <p class="text-xs text-gray-500 truncate" title="{{ tesis.titulo }}">{{ tesis.titulo }}</p>
+                    <p class="text-xs text-gray-600 truncate mb-3" title="{{ tesis.titulo }}">{{ tesis.titulo }}</p>
                     
-                    <!-- En el sidebar siempre mostramos la fecha de la última versión subida -->
                     {% with ultima_version=tesis.versiones.first %}
                         {% if ultima_version %}
-                        <p class="text-[10px] text-gray-400 mt-2 font-mono">V. {{ ultima_version.codigo_version }} • {{ ultima_version.fecha|date:"d M Y" }}</p>
+                        <p class="text-[10px] text-gray-500 font-mono border-t border-gray-200 pt-2">V.{{ ultima_version.codigo_version }} • Actualizado: {{ ultima_version.fecha|date:"d/m/Y" }}</p>
                         {% else %}
-                        <p class="text-[10px] text-gray-400 mt-2 italic">Sin documentos subidos</p>
+                        <p class="text-[10px] text-gray-400 italic border-t border-gray-200 pt-2">Sin documentos subidos</p>
                         {% endif %}
                     {% endwith %}
                 </a>
                 {% empty %}
                 <div class="p-6 text-center text-gray-500">
-                    <p class="text-sm font-medium">Sin asignaciones</p>
-                    <p class="text-xs mt-1">Aún no tienes tesis asignadas para revisión.</p>
+                    <p class="text-sm font-bold uppercase">Sin asignaciones</p>
+                    <p class="text-xs mt-2">Aún no tienes tesis asignadas para revisión.</p>
                 </div>
                 {% endfor %}
 
             </div>
         </aside>
 
-        <!-- ÁREA CENTRAL: VISOR DE DOCUMENTO -->
         <section class="flex-1 flex flex-col bg-gray-100 border-r border-gray-200">
             {% if tesis_activa %}
-                <!-- Cabecera del Documento Activo -->
-                <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
+                <div class="p-4 bg-white border-b border-gray-200 flex items-center justify-between z-10 no-shadow">
                     <div>
                         {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
-                        <h3 class="text-sm font-bold uppercase text-gray-800 flex items-center">
+                        <h3 class="text-sm font-bold uppercase text-gray-900 flex items-center">
                             Expediente: {{ tesis_activa.codigo }}
-                            <!-- Etiqueta visual si está viendo una versión antigua -->
                             {% if ultima_version and tesis_activa.versiones.first and ultima_version.id != tesis_activa.versiones.first.id %}
-                                <span class="ml-3 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[9px] uppercase font-bold rounded-sm border border-yellow-200 tracking-wider">Viendo versión anterior</span>
+                                <span class="ml-3 px-2 py-1 bg-yellow-100 text-yellow-800 text-[10px] uppercase font-bold border border-yellow-300">Viendo versión anterior</span>
                             {% endif %}
                         </h3>
-                        <p class="text-xs text-gray-500">Documento actual: 
-                            <span class="font-medium">
+                        <p class="text-xs text-gray-500 mt-1">Archivo actual: 
+                            <span class="font-bold text-gray-700">
                                 {% if ultima_version %}{{ ultima_version.archivo.name|slice:"15:" }}{% else %}Ningún archivo disponible{% endif %}
                             </span>
                         </p>
                         {% endwith %}
                     </div>
                     <div class="flex space-x-2">
+                        <button onclick="document.getElementById('modalHistorial').classList.remove('hidden')" class="text-xs font-bold border border-gray-300 px-4 py-2 hover:bg-gray-50 flat-button text-gray-700 bg-white transition-colors uppercase">
+                            Ver Historial
+                        </button>
                         {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
                             {% if ultima_version and ultima_version.archivo %}
-                            <a href="{{ ultima_version.archivo.url }}" target="_blank" class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700">Abrir PDF en Nueva Pestaña</a>
+                            <a href="{{ ultima_version.archivo.url }}" target="_blank" class="text-xs font-bold bg-unphu text-white px-4 py-2 hover:bg-green-800 flat-button transition-colors uppercase">
+                                Descargar PDF
+                            </a>
                             {% endif %}
                         {% endwith %}
-                        <button onclick="document.getElementById('modalHistorial').classList.remove('hidden')" class="text-xs font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button text-gray-700 bg-white transition-colors">Ver Historial de Versiones</button>
                     </div>
                 </div>
                 
-                <!-- VISOR DE PDF REAL -->
-                <div class="flex-1 p-0 overflow-hidden bg-gray-300 flex justify-center">
-                    {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
-                        {% if ultima_version and ultima_version.archivo %}
-                            <embed src="{{ ultima_version.archivo.url }}" type="application/pdf" class="w-full h-full border-0 shadow-inner" />
-                        {% else %}
-                            <div class="flex flex-col items-center justify-center h-full text-gray-500">
-                                <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <p class="text-lg font-medium">No hay documento adjunto</p>
-                                <p class="text-sm mt-2">Los estudiantes aún no han subido ninguna versión de esta tesis.</p>
-                            </div>
-                        {% endif %}
-                    {% endwith %}
+                <div class="flex-1 p-6 overflow-hidden flex justify-center bg-gray-200">
+                    <div class="w-full h-full max-w-5xl bg-white border border-gray-300 no-shadow flex flex-col">
+                        {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
+                            {% if ultima_version and ultima_version.archivo %}
+                                <embed src="{{ ultima_version.archivo.url }}" type="application/pdf" class="w-full h-full border-0" />
+                            {% else %}
+                                <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                                    <p class="text-lg font-bold uppercase tracking-widest text-gray-400">No hay documento adjunto</p>
+                                    <p class="text-sm mt-2 text-gray-500">Los estudiantes aún no han subido ninguna versión.</p>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
                 </div>
             {% else %}
-                <div class="flex-1 flex items-center justify-center text-gray-400">
-                    <p class="text-lg">Seleccione una tesis del panel izquierdo para ver el documento.</p>
+                <div class="flex-1 flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                    <p class="text-lg font-bold uppercase tracking-widest text-gray-400">Panel de Lectura</p>
+                    <p class="text-sm mt-2 text-gray-500">Seleccione un expediente en el panel izquierdo.</p>
                 </div>
             {% endif %}
         </section>
 
-        <!-- PANEL DERECHO: COMENTARIOS Y ESTADO -->
-        <aside class="w-[380px] flat-card flex flex-col shrink-0">
+        <aside class="w-[400px] bg-white flex flex-col shrink-0 border-l border-gray-200">
             {% if tesis_activa %}
-                <div class="p-4 border-b border-gray-200 bg-gray-50">
-                    <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Panel de Retroalimentación</h2>
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase text-gray-500 tracking-widest">Retroalimentación</h2>
+                    <span class="bg-gray-200 text-gray-700 px-2 py-1 text-[10px] font-bold font-mono">V.{{ version_activa.codigo_version|default:tesis_activa.versiones.first.codigo_version }}</span>
                 </div>
                 
-                <!-- Historial de Comentarios Dinámico (Para la versión activa) -->
-                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
                     {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
                         {% if ultima_version.comentarios.all %}
                             {% for comentario in ultima_version.comentarios.all %}
-                            
-                                <!-- TARJETA DE COMENTARIO -->
-                                <div class="border p-3 rounded-sm relative transition-colors duration-300
-                                    {% if comentario.estatus_comentario.nombre == 'Corregido' %}bg-green-50 border-green-200
-                                    {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}bg-red-50 border-red-200
-                                    {% else %}bg-blue-50 border-blue-200{% endif %}">
+                                
+                                <div class="border p-4 bg-gray-50 no-shadow
+                                    {% if comentario.estatus_comentario.nombre == 'Corregido' %}border-green-300
+                                    {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}border-red-300
+                                    {% else %}border-gray-300{% endif %}">
                                     
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="text-[10px] font-bold uppercase
-                                            {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-800
-                                            {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-800
-                                            {% else %}text-blue-800{% endif %}">
-                                            {{ comentario.autor.get_full_name }}
-                                        </span>
-                                        <span class="text-[9px]
-                                            {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-600
-                                            {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-600
-                                            {% else %}text-blue-500{% endif %}">
-                                            {{ comentario.fecha|date:"d M Y" }} a las {{ comentario.hora|time:"H:i" }}
-                                        </span>
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-xs font-bold text-gray-900 uppercase">{{ comentario.autor.get_full_name }}</span>
+                                        <span class="text-[10px] font-mono text-gray-500">{{ comentario.fecha|date:"d/m/Y" }} {{ comentario.hora|time:"H:i" }}</span>
                                     </div>
-                                    <p class="text-xs text-gray-700 leading-relaxed">{{ comentario.contenido }}</p>
+                                    <p class="text-sm text-gray-700 leading-relaxed mb-4">{{ comentario.contenido }}</p>
                                     
-                                    <!-- Formulario para Cambiar Estado del Comentario Individual -->
-                                    <div class="mt-3 pt-2 border-t flex justify-end
-                                        {% if comentario.estatus_comentario.nombre == 'Corregido' %}border-green-200/50
-                                        {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}border-red-200/50
-                                        {% else %}border-blue-200/50{% endif %}">
-                                        <form method="POST" class="flex items-center space-x-2">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="update_comment_status">
-                                            <input type="hidden" name="comentario_id" value="{{ comentario.id }}">
-                                            
-                                            <span class="text-[9px] uppercase font-bold
-                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}text-green-700
-                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}text-red-700
-                                                {% else %}text-blue-600{% endif %}">Estado:</span>
-                                                
-                                            <select name="estado_comentario" class="text-[10px] p-1 border bg-white focus:outline-none text-gray-700 rounded-sm
-                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}border-green-300
-                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}border-red-300
-                                                {% else %}border-blue-200{% endif %}">
+                                    <form method="POST" class="pt-3 border-t border-gray-200 flex justify-between items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_comment_status">
+                                        <input type="hidden" name="comentario_id" value="{{ comentario.id }}">
+                                        
+                                        <span class="text-[10px] uppercase font-bold text-gray-500">Estado:</span>
+                                        <div class="flex items-center space-x-2">
+                                            <select name="estado_comentario" class="input-flat text-[10px] p-1.5 focus:outline-none text-gray-800 uppercase font-bold">
                                                 <option value="Pendiente" {% if comentario.estatus_comentario.nombre == 'Pendiente' or not comentario.estatus_comentario %}selected{% endif %}>Pendiente</option>
                                                 <option value="Corregido" {% if comentario.estatus_comentario.nombre == 'Corregido' %}selected{% endif %}>Corregido</option>
                                                 <option value="No Atendido" {% if comentario.estatus_comentario.nombre == 'No Atendido' %}selected{% endif %}>No Atendido</option>
                                             </select>
-                                            
-                                            <button type="submit" class="text-[9px] font-bold px-2 py-1 transition-colors rounded-sm
-                                                {% if comentario.estatus_comentario.nombre == 'Corregido' %}bg-green-100 text-green-700 hover:bg-green-200
-                                                {% elif comentario.estatus_comentario.nombre == 'No Atendido' %}bg-red-100 text-red-700 hover:bg-red-200
-                                                {% else %}bg-blue-100 text-blue-700 hover:bg-blue-200{% endif %}">
+                                            <button type="submit" class="text-[10px] font-bold px-3 py-1.5 transition-colors border border-gray-300 hover:bg-gray-200 bg-white uppercase text-gray-700">
                                                 Guardar
                                             </button>
-                                        </form>
-                                    </div>
+                                        </div>
+                                    </form>
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <div class="text-center text-xs text-gray-400 italic mt-10">
-                                No hay comentarios en esta versión.<br>Inicie la evaluación debajo.
+                            <div class="text-center text-xs font-bold text-gray-400 uppercase mt-10 tracking-widest">
+                                No hay comentarios registrados
                             </div>
                         {% endif %}
                     {% endwith %}
                 </div>
 
-                <!-- FORMULARIO DE NUEVO COMENTARIO -->
-                <form method="POST" class="p-4 border-t border-gray-200 bg-white">
+                <form method="POST" class="p-6 border-t border-gray-200 bg-gray-50">
                     {% csrf_token %}
-                    <!-- Campo Oculto para identificar la acción -->
                     <input type="hidden" name="action" value="new_comment">
-                    
-                    <!-- NUEVO: Agregamos el ID de la versión para que el comentario se asigne a la versión que estamos viendo -->
                     {% with ultima_version=version_activa|default:tesis_activa.versiones.first %}
-                        {% if ultima_version %}
-                            <input type="hidden" name="version_id" value="{{ ultima_version.id }}">
-                        {% endif %}
+                        {% if ultima_version %}<input type="hidden" name="version_id" value="{{ ultima_version.id }}">{% endif %}
                     {% endwith %}
                     
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Nuevo Comentario / Observación</label>
-                    <textarea name="comentario" required class="w-full h-32 p-3 text-xs border border-gray-200 focus:outline-none focus:border-unphu resize-none bg-gray-50" placeholder="Escriba aquí sus correcciones sobre el documento..."></textarea>
+                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-2">Nuevo Comentario / Observación</label>
+                    <textarea name="comentario" required class="input-flat w-full h-24 p-3 text-sm resize-none mb-4" placeholder="Escriba aquí sus observaciones..."></textarea>
                     
-                    <div class="mt-4 space-y-2">
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Cambiar Estado de Tesis</label>
-                        <select name="estado" class="w-full p-2 text-xs border border-gray-200 focus:outline-none bg-white">
-                            <option value="En Revisión" {% if tesis_activa.estado.nombre == 'En Revisión' %}selected{% endif %}>En Revisión</option>
-                            <option value="Requiere Correcciones Mayores" {% if tesis_activa.estado.nombre == 'Requiere Correcciones Mayores' %}selected{% endif %}>Requiere Correcciones Mayores</option>
-                            <option value="Aprobado para Defensa" {% if tesis_activa.estado.nombre == 'Aprobado para Defensa' %}selected{% endif %}>Aprobado para Defensa</option>
-                        </select>
-                    </div>
+                    <label class="block text-[10px] font-bold text-gray-600 uppercase mb-2">Cambiar Estatus General de Tesis</label>
+                    <select name="estado" class="input-flat w-full p-2 text-xs font-bold text-gray-800 uppercase mb-4">
+                        <option value="En Revisión" {% if tesis_activa.estado.nombre == 'En Revisión' %}selected{% endif %}>En Revisión</option>
+                        <option value="Requiere Correcciones Mayores" {% if tesis_activa.estado.nombre == 'Requiere Correcciones Mayores' %}selected{% endif %}>Requiere Correcciones Mayores</option>
+                        <option value="Aprobado para Defensa" {% if tesis_activa.estado.nombre == 'Aprobado para Defensa' %}selected{% endif %}>Aprobado para Defensa</option>
+                    </select>
 
-                    <button type="submit" class="w-full mt-4 bg-unphu text-white text-xs font-bold py-3 flat-button uppercase tracking-widest hover:brightness-110 active:scale-[0.98]">
-                        Enviar Retroalimentación
+                    <button type="submit" class="w-full bg-unphu text-white text-xs font-bold py-3 flat-button uppercase hover:bg-green-800">
+                        Enviar Evaluación
                     </button>
                 </form>
             {% endif %}
@@ -248,68 +260,50 @@
 
     </main>
 
-    <!-- ========================================== -->
-    <!-- MODAL: HISTORIAL DE VERSIONES              -->
-    <!-- ========================================== -->
     {% if tesis_activa %}
-    <div id="modalHistorial" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-sm shadow-2xl w-full max-w-3xl flex flex-col max-h-[80vh] border border-gray-200">
+    <div id="modalHistorial" class="hidden fixed inset-0 modal-overlay z-[100] flex items-center justify-center p-4">
+        <div class="flat-card w-full max-w-4xl flex flex-col max-h-[85vh]">
             
-            <!-- Cabecera del Modal -->
-            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <div>
-                    <h2 class="text-sm font-bold uppercase text-gray-800 tracking-wider">Historial de Entregas</h2>
-                    <p class="text-[10px] text-gray-500 uppercase mt-1">Expediente: {{ tesis_activa.codigo }}</p>
-                </div>
-                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-gray-400 hover:text-red-500 transition-colors p-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+            <div class="p-4 bg-unphu text-white flex justify-between items-center border-b border-gray-200">
+                <h2 class="text-sm font-bold uppercase tracking-wider">Historial de Entregas - {{ tesis_activa.codigo }}</h2>
+                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-xl font-bold hover:text-gray-300 px-2">&times;</button>
             </div>
             
-            <!-- Cuerpo del Modal (Tabla de Versiones) -->
             <div class="p-0 overflow-y-auto flex-1 bg-white">
                 <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50 sticky top-0 border-b border-gray-200">
+                    <thead class="bg-gray-100 sticky top-0 border-b border-gray-200">
                         <tr>
-                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Versión</th>
-                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fecha de Subida</th>
-                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Estatus</th>
-                            <th class="p-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-right">Documento</th>
+                            <th class="p-4 text-[10px] font-bold text-gray-600 uppercase tracking-wider">Versión</th>
+                            <th class="p-4 text-[10px] font-bold text-gray-600 uppercase tracking-wider">Fecha de Subida</th>
+                            <th class="p-4 text-[10px] font-bold text-gray-600 uppercase tracking-wider">Estatus</th>
+                            <th class="p-4 text-[10px] font-bold text-gray-600 uppercase tracking-wider text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="text-sm">
                         {% for version in tesis_activa.versiones.all %}
-                        
-                        <!-- Si esta fila es la versión que estamos viendo, la resaltamos un poco -->
                         {% with u_activa=version_activa|default:tesis_activa.versiones.first %}
-                        <tr class="transition-colors {% if u_activa.id == version.id %}bg-blue-50/50{% else %}hover:bg-green-50/50{% endif %}">
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 {% if u_activa.id == version.id %}bg-green-50{% endif %}">
                         {% endwith %}
-                        
-                            <td class="p-3">
-                                <span class="text-xs font-bold font-mono text-[#006837] bg-green-50 px-2 py-1 rounded-sm border border-green-100">{{ version.codigo_version }}</span>
+                            <td class="p-4 font-mono font-bold text-xs text-gray-800">
+                                V.{{ version.codigo_version }}
                             </td>
-                            <td class="p-3">
-                                <p class="text-xs text-gray-800 font-medium">{{ version.fecha|date:"d M Y" }}</p>
-                                <p class="text-[10px] text-gray-400">{{ version.nombre_entregable }}</p>
+                            <td class="p-4">
+                                <p class="font-bold text-gray-800">{{ version.fecha|date:"d/m/Y" }}</p>
+                                <p class="text-[10px] text-gray-500">{{ version.nombre_entregable }}</p>
                             </td>
-                            <td class="p-3">
-                                <span class="text-[10px] uppercase font-bold text-gray-600">{{ version.estatus_version.nombre }}</span>
+                            <td class="p-4">
+                                <span class="status-badge bg-gray-200 text-gray-700">{{ version.estatus_version.nombre }}</span>
                             </td>
-                            <td class="p-3 text-right">
+                            <td class="p-4 text-right space-x-2">
                                 {% if version.archivo %}
-                                    <div class="flex justify-end space-x-1">
-                                        <!-- BOTÓN PARA CARGAR EN EL PANEL -->
-                                        <a href="?tesis={{ tesis_activa.id }}&version={{ version.id }}" class="inline-flex items-center space-x-1 text-[10px] font-bold uppercase text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-sm transition-colors">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                            <span>Cargar en Panel</span>
-                                        </a>
-                                        <!-- BOTÓN PARA ABRIR EN NUEVA PESTAÑA -->
-                                        <a href="{{ version.archivo.url }}" target="_blank" class="inline-flex items-center text-[#006837] bg-green-50 border border-[#006837] hover:bg-green-100 px-2 py-1.5 rounded-sm transition-colors" title="Abrir en nueva pestaña">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                        </a>
-                                    </div>
+                                    <a href="?tesis={{ tesis_activa.id }}&version={{ version.id }}" class="inline-block text-[10px] font-bold uppercase text-white bg-gray-800 hover:bg-black px-3 py-2 flat-button">
+                                        Cargar en Panel
+                                    </a>
+                                    <a href="{{ version.archivo.url }}" target="_blank" class="inline-block text-[10px] font-bold uppercase text-unphu bg-white border border-unphu hover:bg-green-50 px-3 py-2 flat-button">
+                                        Abrir PDF
+                                    </a>
                                 {% else %}
-                                    <span class="text-xs text-gray-400 italic">No disponible</span>
+                                    <span class="text-xs text-gray-400 italic font-bold uppercase">No disponible</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -318,10 +312,9 @@
                 </table>
             </div>
             
-            <!-- Pie del Modal -->
-            <div class="p-4 border-t border-gray-200 bg-gray-50 text-right">
-                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-xs font-bold border border-gray-300 px-4 py-2 hover:bg-gray-100 flat-button text-gray-700 bg-white transition-colors">
-                    Cerrar Historial
+            <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+                <button onclick="document.getElementById('modalHistorial').classList.add('hidden')" class="text-xs font-bold uppercase border border-gray-300 px-6 py-2 hover:bg-gray-200 bg-white text-gray-800 flat-button">
+                    Cerrar
                 </button>
             </div>
             

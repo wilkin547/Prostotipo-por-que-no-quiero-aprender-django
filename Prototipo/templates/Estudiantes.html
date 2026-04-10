@@ -3,287 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNPHU | Mi Tesis - Entorno de Trabajo</title>
+    <title>Panel Estudiante - UNPHU</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
-        :root {
-            --unphu-green: #006837;
-            --unphu-green-dark: #004d29;
-            --bg-canvas: #f3f4f6; /* Gris un poco más oscuro para el fondo del visor */
-            --bg-panels: #ffffff;
-            --text-main: #1f2937;
-            --border-color: #e5e7eb;
-        }
-        body {
-            background-color: var(--bg-canvas);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            overflow: hidden; /* Evitar scroll en toda la página, se manejará por paneles */
-        }
-        .bg-unphu { background-color: var(--unphu-green); }
-        .text-unphu { color: var(--unphu-green); }
-        .border-unphu { border-color: var(--unphu-green); }
-        
-        /* Estilos Flat Design */
-        .no-shadow { box-shadow: none !important; }
-        
-        /* Layout de tres paneles */
-        .workspace-container {
-            display: flex;
-            height: calc(100vh - 64px); /* Restar la altura del navbar */
-        }
-        .panel {
-            background-color: var(--bg-panels);
-            overflow-y: auto;
-        }
-        .panel-left {
-            width: 280px;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
-        .panel-center {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-canvas);
-        }
-        .panel-right {
-            width: 320px;
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Estilos específicos de elementos */
-        .version-item {
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
-            cursor: pointer;
-        }
-        .version-item:hover { background-color: #f9fafb; }
-        .version-active {
-            background-color: #f0fdf4 !important;
-            border-left: 4px solid var(--unphu-green);
-        }
-        .comment-card {
-            border: 1px solid var(--border-color);
-            background-color: #f9fafb;
-        }
-        
-        /* Visor PDF Simulado */
-        .pdf-viewer-container {
-            flex: 1;
-            margin: 1.5rem;
-            background: white;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: center;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-        .pdf-page {
-            width: 100%;
-            max-width: 800px;
-            min-height: 1000px;
-            background: white;
-            border: 1px solid #d1d5db;
-        }
-
-        /* Scrollbar personalizado flat */
-        ::-webkit-scrollbar { width: 8px; }
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #111827; }
+        .unphu-green { color: #006837; }
+        .bg-unphu { background-color: #006837; }
+        .border-unphu { border-color: #006837; }
+        .flat-border { border: 1px solid #e5e7eb; }
+        .flat-button { border-radius: 0px; transition: all 0.2s; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        ::-webkit-scrollbar-thumb { background: #006837; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- Navegación Superior (Top Bar) -->
-    <nav class="bg-unphu text-white px-6 h-16 flex justify-between items-center no-shadow shrink-0 z-50">
+    <!-- CABECERA -->
+    <header class="bg-unphu text-white h-14 flex items-center justify-between px-6 shrink-0 z-20">
         <div class="flex items-center space-x-4">
-            <div class="font-bold text-xl tracking-tight uppercase">UNPHU | <span class="font-light italic">Tesis</span></div>
-            <div class="hidden md:flex items-center ml-4 px-4 border-l border-green-700">
-                <span class="text-xs bg-green-800 px-2 py-1 uppercase font-bold tracking-widest">Panel del Estudiante</span>
+            <div class="bg-white p-1">
+                <div class="w-8 h-8 flex items-center justify-center text-[10px] text-unphu font-bold">UNPHU</div>
+            </div>
+            <div>
+                <h1 class="text-xs font-bold tracking-widest uppercase">Módulo de Estudiante</h1>
+                <p class="text-[9px] opacity-80 uppercase tracking-tighter">{{ tesis_principal.titulo|truncatechars:60 }}</p>
             </div>
         </div>
-        <div class="flex items-center space-x-6 text-sm">
-            <div class="text-right hidden md:block">
-                <p class="font-bold leading-tight">Juan Alberto Pérez</p>
-                <p class="text-[10px] text-green-200 font-mono">18-0432 | Ing. de Sistemas</p>
+        <div class="flex items-center space-x-6 text-[10px] font-bold uppercase">
+            <div class="text-right">
+                <p>{{ request.user.get_full_name }}</p>
+                <p class="opacity-70 font-normal">Matrícula: {{ request.user.estudiante.matricula }}</p>
             </div>
-            <button class="border border-white px-4 py-1 hover:bg-white hover:text-green-900 transition font-bold uppercase text-xs">CERRAR SESIÓN</button>
+            <form action="{% url 'logout' %}" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="bg-white/10 hover:bg-white/20 px-4 py-2 border border-white/20 flat-button">Salir</button>
+            </form>
         </div>
-    </nav>
+    </header>
 
-    <!-- Entorno de Trabajo (Tres Paneles) -->
-    <main class="workspace-container">
+    <main class="flex flex-1 overflow-hidden">
         
-        <!-- PANEL IZQUIERDO: Versiones -->
-        <aside class="panel panel-left relative">
-            <div class="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
-                <h2 class="font-bold text-gray-800 uppercase tracking-wider text-xs">Historial de Versiones</h2>
+        <!-- SIDEBAR IZQUIERDO: HISTORIAL DE VERSIONES -->
+        <aside class="w-64 border-r border-gray-200 flex flex-col shrink-0 bg-white text-[11px]">
+            <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 class="font-bold uppercase text-gray-500 tracking-widest">Mis Entregas</h2>
+                <!-- Aquí ya podemos contar las versiones correctamente -->
+                <span class="bg-gray-200 text-gray-600 px-2 py-0.5 font-mono">{{ tesis_principal.versiones.all|length }}</span>
             </div>
             
-            <div class="flex-1 overflow-y-auto">
-                <!-- Versión Actual -->
-                <div class="version-item version-active p-4 flex flex-col gap-2" onclick="changeVersion(this)">
-                    <div class="flex justify-between items-start">
-                        <span class="font-bold text-sm text-gray-900">Versión 2.0</span>
-                        <span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-1 font-bold uppercase">En Revisión</span>
+            <nav class="flex-1 overflow-y-auto">
+                <!-- Iteramos sobre las versiones de la tesis actual (de más reciente a más antiguo) -->
+                {% for v in tesis_principal.versiones.all %}
+                <a href="?version={{ v.id }}" 
+                   class="block p-4 border-b border-gray-100 transition-all {% if version_activa.id == v.id %}bg-green-50 border-l-4 border-l-unphu{% else %}hover:bg-gray-50 border-l-4 border-transparent{% endif %}">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-bold text-unphu uppercase">Versión {{ forloop.counter }}</span>
+                        <span class="text-[9px] text-gray-400">{{ v.fecha|date:"d/m/y" }}</span>
                     </div>
-                    <span class="text-xs font-mono text-gray-500">Subido el: 14/12/2024</span>
-                    <span class="text-[10px] text-gray-400">Anexos y Planos v2.pdf</span>
-                </div>
-
-                <!-- Versión Anterior -->
-                <div class="version-item p-4 flex flex-col gap-2" onclick="changeVersion(this)">
-                    <div class="flex justify-between items-start">
-                        <span class="font-bold text-sm text-gray-900">Versión 1.0</span>
-                        <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 font-bold uppercase">Revisada</span>
+                    <p class="text-gray-800 font-medium truncate">{{ v.nombre_entregable|default:"Entrega sin nombre" }}</p>
+                    <div class="mt-2">
+                        <span class="text-[9px] px-1.5 py-0.5 border border-gray-200 text-gray-500 uppercase font-bold">
+                            {{ v.archivo.name|truncatechars:15 }}
+                        </span>
                     </div>
-                    <span class="text-xs font-mono text-gray-500">Subido el: 10/12/2024</span>
-                    <span class="text-[10px] text-gray-400">Tesis Completa v1.docx</span>
+                </a>
+                {% empty %}
+                <div class="p-8 text-center text-gray-400 italic">
+                    No has subido versiones aún.
                 </div>
-            </div>
-
-            <!-- Botón de Acción -->
-            <div class="p-4 border-t border-gray-200 sticky bottom-0 bg-white">
-                <button class="w-full bg-unphu text-white py-3 text-xs font-bold uppercase hover:bg-green-800 transition flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    Subir Nueva Versión
+                {% endfor %}
+            </nav>
+            
+            <div class="p-4 border-t border-gray-200">
+                <button onclick="document.getElementById('modalSubida').classList.remove('hidden')" 
+                        class="w-full bg-unphu text-white font-bold py-3 uppercase tracking-widest hover:bg-[#00522c] flat-button text-[10px]">
+                    Nueva Entrega
                 </button>
             </div>
         </aside>
 
-        <!-- PANEL CENTRAL: Visor de Tesis -->
-        <section class="panel-center">
-            <!-- Barra de herramientas del documento -->
-            <div class="bg-white border-b border-gray-200 h-14 px-6 flex justify-between items-center shrink-0">
-                <div>
-                    <h1 class="font-bold text-gray-800">Optimización de Redes Neuronales</h1>
-                    <p class="text-[10px] uppercase font-bold text-gray-400">Código: T-2023-001 | Asesor: Ing. Roberto Gómez</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button class="border border-gray-300 bg-white text-gray-700 px-3 py-1 text-xs font-bold uppercase hover:bg-gray-50 transition" title="Descargar Archivo Original">
-                        Descargar PDF
-                    </button>
-                </div>
-            </div>
-
-            <!-- Visor del PDF (Simulado) -->
-            <div class="pdf-viewer-container">
-                <div class="pdf-page p-12 relative no-shadow">
-                    <!-- Contenido Simulado del PDF -->
-                    <div class="text-center mb-16 mt-10">
-                        <h2 class="text-2xl font-bold uppercase mb-4 text-gray-800">Capítulo 2: Marco Metodológico</h2>
-                        <div class="w-16 h-1 bg-unphu mx-auto mb-10"></div>
+        <!-- ÁREA CENTRAL: VISOR PDF -->
+        <section class="flex-1 flex flex-col bg-gray-200 relative">
+            {% if version_activa and version_activa.archivo %}
+                <div class="p-3 bg-white border-b border-gray-200 flex items-center justify-between z-10">
+                    <div>
+                        <span class="text-[9px] text-unphu font-bold uppercase tracking-widest">Visualizando</span>
+                        <h3 class="text-xs font-bold uppercase text-gray-800">{{ version_activa.nombre_entregable }}</h3>
                     </div>
-                    
-                    <div class="space-y-6 text-gray-700 text-justify leading-relaxed font-serif">
-                        <p>2.1. Diseño de la Investigación</p>
-                        <p>
-                            La presente investigación adopta un enfoque cuantitativo con un diseño no experimental y de corte transversal. El propósito central es analizar la eficiencia de los algoritmos de optimización aplicados a redes neuronales convolucionales (CNN) en dispositivos de recursos limitados (Edge Computing).
-                        </p>
-                        <p>
-                            Al no manipular deliberadamente las variables independientes, se observarán los fenómenos tal como se dan en su contexto natural para posteriormente analizarlos. El estudio es de tipo explicativo, ya que busca establecer las causas de las mejoras en el rendimiento computacional al aplicar técnicas de cuantización y poda de pesos.
-                        </p>
-                        <p class="bg-yellow-100 p-1 border-l-2 border-yellow-400" title="Comentario C-2024-01 asociado a este párrafo">
-                            2.2. Población y Muestra
-                        </p>
-                        <p class="bg-yellow-100 p-1 border-l-2 border-yellow-400" title="Comentario C-2024-01 asociado a este párrafo">
-                            Para validar los modelos optimizados, se utilizarán conjuntos de datos públicos estandarizados como ImageNet y CIFAR-10. La validación cruzada se realizará utilizando un K-fold de 5 iteraciones.
-                        </p>
-                        <p>2.3. Instrumentos de Recolección de Datos</p>
-                        <p>
-                            La recolección de métricas de rendimiento (latencia, uso de memoria RAM, y precisión de inferencia) se realizará mediante scripts automatizados desarrollados en Python utilizando la librería TensorFlow Lite y PyTorch Mobile. Las mediciones se ejecutarán en una placa Raspberry Pi 4 Model B (4GB RAM).
-                        </p>
-                        <!-- Más texto simulado... -->
-                        <div class="mt-20 border-t border-gray-300 pt-4">
-                            <p class="text-xs text-gray-400 text-center">Página 14 de 120</p>
-                        </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ version_activa.archivo.url }}" target="_blank" class="text-[9px] font-bold border border-gray-300 px-3 py-1.5 hover:bg-gray-50 flat-button uppercase text-gray-600">Abrir en pestaña</a>
                     </div>
                 </div>
-            </div>
+                
+                <div class="flex-1 flex justify-center items-center overflow-hidden bg-gray-300">
+                    <iframe src="{{ version_activa.archivo.url }}#toolbar=0" class="w-full h-full shadow-inner border-none"></iframe>
+                </div>
+            {% else %}
+                <div class="flex-1 flex flex-col items-center justify-center text-gray-400 p-10">
+                    <div class="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-4 text-xl">!</div>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-center">Selecciona una versión del menú izquierdo o realiza tu primera entrega</p>
+                </div>
+            {% endif %}
         </section>
 
-        <!-- PANEL DERECHO: Comentarios -->
-        <aside class="panel panel-right">
-            <div class="p-4 border-b border-gray-200 sticky top-0 bg-white z-10 flex justify-between items-center">
-                <h2 class="font-bold text-gray-800 uppercase tracking-wider text-xs">Comentarios del Asesor</h2>
-                <span class="bg-gray-100 text-gray-600 px-2 py-1 text-[10px] font-bold rounded-full">2</span>
+        <!-- PANEL DERECHO: COMENTARIOS -->
+        <aside class="w-80 border-l border-gray-200 flex flex-col shrink-0 bg-white">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
+                <h2 class="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Correcciones del Asesor</h2>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                
-                <!-- Tarjeta de Comentario 1 -->
-                <div class="comment-card p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded-full bg-unphu text-white flex items-center justify-center text-xs font-bold">RG</div>
-                            <div>
-                                <p class="text-xs font-bold text-gray-800 leading-tight">Ing. Roberto Gómez</p>
-                                <p class="text-[9px] font-mono text-gray-500">C-2024-01 | 15/12/2024 14:30</p>
-                            </div>
+            <!-- COMENTARIOS DE LA VERSIÓN ACTIVA -->
+            <div class="flex-1 overflow-y-auto bg-gray-50/30 p-3 space-y-3">
+                {% if version_activa and version_activa.comentarios.all %}
+                    {% for c in version_activa.comentarios.all %}
+                    <div class="bg-white border border-gray-200 p-3 shadow-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[9px] font-bold text-unphu uppercase tracking-tighter">
+                                ● {{ c.autor.get_full_name|default:"Asesor" }}
+                            </span>
+                            <span class="text-[8px] text-gray-400 font-mono">{{ c.fecha|date:"d/m/y" }}</span>
                         </div>
+                        <p class="text-[10px] text-gray-700 leading-relaxed">
+                            {{ c.contenido }}
+                        </p>
                     </div>
-                    <div class="mt-3 text-sm text-gray-700 leading-snug">
-                        <p>La sección de metodología (2.2) no especifica el tamaño de la muestra ni el método de muestreo utilizado de forma explícita para la fase de validación de usuarios finales, solo menciona los datasets.</p>
+                    {% endfor %}
+                {% else %}
+                    <div class="flex flex-col items-center justify-center h-full text-gray-400 text-center py-8">
+                        <p class="text-[10px] uppercase tracking-widest px-2">{% if version_activa %}Sin comentarios en esta versión{% else %}Selecciona una versión para ver comentarios{% endif %}</p>
                     </div>
-                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
-                        <span class="text-[10px] font-bold uppercase text-red-600">Requiere Corrección</span>
-                        <button class="text-unphu text-xs font-bold hover:underline">Marcar Resuelto</button>
-                    </div>
-                </div>
-
-                <!-- Tarjeta de Comentario 2 -->
-                <div class="comment-card p-4">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded-full bg-unphu text-white flex items-center justify-center text-xs font-bold">RG</div>
-                            <div>
-                                <p class="text-xs font-bold text-gray-800 leading-tight">Ing. Roberto Gómez</p>
-                                <p class="text-[9px] font-mono text-gray-500">C-2024-02 | 16/12/2024 09:15</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3 text-sm text-gray-700 leading-snug">
-                        <p>Se recomienda ampliar las fuentes bibliográficas de la introducción con artículos de los últimos 5 años referentes a Edge AI.</p>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
-                        <span class="text-[10px] font-bold uppercase text-orange-500">Sugerencia</span>
-                        <button class="text-gray-400 text-xs font-bold hover:text-gray-600 transition cursor-not-allowed">Resuelto</button>
-                    </div>
-                </div>
-
+                {% endif %}
             </div>
 
-            <!-- Botón de Comunicación (Opcional para el estudiante) -->
-            <div class="p-4 border-t border-gray-200 sticky bottom-0 bg-gray-50">
-                <button class="w-full border-2 border-dashed border-gray-300 text-gray-500 py-2 text-xs font-bold uppercase hover:bg-gray-100 transition hover:border-gray-400">
-                    Añadir Nota Privada
-                </button>
+            <!-- Resumen Informativo al Pie -->
+            <div class="p-3 bg-white border-t border-gray-200 text-[10px]">
+                <div class="space-y-2">
+                    <div class="flex justify-between font-bold uppercase">
+                        <span class="text-gray-400">Estado Proyecto</span>
+                        <span class="text-unphu">{{ tesis_principal.estado.nombre|default:"En Revisión" }}</span>
+                    </div>
+                    <div class="w-full bg-gray-100 h-1 rounded">
+                        <div class="bg-unphu h-1 rounded" style="width: 60%;"></div>
+                    </div>
+                </div>
             </div>
         </aside>
-
     </main>
 
-    <script>
-        // Funcionalidad simple para cambiar la apariencia de la versión seleccionada
-        function changeVersion(element) {
-            // Remover la clase activa de todos los elementos
-            const items = document.querySelectorAll('.version-item');
-            items.forEach(item => {
-                item.classList.remove('version-active');
-            });
-            
-            // Añadir la clase activa al elemento clicado
-            element.classList.add('version-active');
-            
-            // Simular carga de documento
-            console.log("Cargando versión del documento...");
-        }
-    </script>
+    <!-- MODAL DE SUBIDA -->
+    <div id="modalSubida" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md border border-gray-300 shadow-2xl">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xs font-bold uppercase tracking-widest">Nueva Versión de Tesis</h3>
+                <button onclick="document.getElementById('modalSubida').classList.add('hidden')" class="text-gray-400 hover:text-black text-lg">✕</button>
+            </div>
+            <form action="{% url 'subir_version' %}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+                {% csrf_token %}
+                <!-- Pasamos el ID real de la tesis -->
+                <input type="hidden" name="tesis_id" value="{{ tesis_principal.id }}">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Descripción del Entregable</label>
+                    <input type="text" name="nombre_entregable" required placeholder="Ej: Borrador Capítulo 2" 
+                           class="w-full border border-gray-200 p-3 text-xs focus:outline-none focus:border-unphu bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Archivo PDF (Máx. 10MB)</label>
+                    <input type="file" name="archivo" required accept=".pdf" 
+                           class="w-full text-xs border border-gray-200 p-3 bg-gray-50 file:mr-4 file:py-1 file:px-2 file:border-0 file:text-[10px] file:font-bold file:bg-unphu file:text-white file:uppercase">
+                </div>
+                <button type="submit" class="w-full bg-unphu text-white text-[10px] font-bold py-4 uppercase tracking-widest hover:brightness-90 flat-button">
+                    Subir al Repositorio
+                </button>
+            </form>
+        </div>
+    </div>
+
 </body>
 </html>

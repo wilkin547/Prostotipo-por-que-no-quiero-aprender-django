@@ -92,38 +92,40 @@
                 <h2 class="font-bold uppercase tracking-wider text-sm">Nuevo Perfil de Estudiante</h2>
                 <button onclick="closeModal('estudiante')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Estudiante registrado con éxito'); closeModal('estudiante');">
+            <form class="p-6 space-y-4" method="POST" action="{% url 'registrar_estudiante' %}">
+                {% csrf_token %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="matricula">Matrícula</label>
-                        <input type="text" id="matricula" placeholder="ej. 18-0432" class="input-flat" required>
+                        <input type="text" id="matricula" name="matricula" placeholder="ej. 18-0432" class="input-flat" required>
                     </div>
                     <div>
                         <label for="telefono-est">Número de Teléfono</label>
-                        <input type="tel" id="telefono-est" placeholder="809-000-0000" class="input-flat" required>
+                        <input type="tel" id="telefono-est" name="telefono" placeholder="809-000-0000" class="input-flat" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombres-est">Nombres</label>
+                        <input type="text" id="nombres-est" name="nombres" placeholder="Nombre" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="apellidos-est">Apellidos</label>
+                        <input type="text" id="apellidos-est" name="apellidos" placeholder="Apellido" class="input-flat" required>
                     </div>
                 </div>
                 <div>
-                    <label for="nombre-est">Nombre Completo</label>
-                    <input type="text" id="nombre-est" placeholder="Nombre Apellido" class="input-flat" required>
-                </div>
-                <div>
                     <label for="correo-est">Correo Electrónico</label>
-                    <input type="email" id="correo-est" placeholder="ejemplo@unphu.edu.do" class="input-flat" required>
+                    <input type="email" id="correo-est" name="email" placeholder="ejemplo@unphu.edu.do" class="input-flat" required>
                 </div>
                 <div>
                     <label for="carrera">Carrera</label>
-                    <select id="carrera" class="input-flat" required>
+                    <select id="carrera" name="carrera" class="input-flat" required>
                         <option value="">Seleccione una carrera...</option>
-                        <option value="sistemas">Ingeniería de Sistemas</option>
-                        <option value="arquitectura">Arquitectura</option>
-                        <option value="derecho">Derecho</option>
-                        <option value="medicina">Medicina</option>
+                        {% for carrera in carreras %}
+                        <option value="{{ carrera.id }}">{{ carrera.nombre }}</option>
+                        {% endfor %}
                     </select>
-                </div>
-                <div>
-                    <label for="password-est">Contraseña Temporal</label>
-                    <input type="password" id="password-est" placeholder="••••••••" class="input-flat" required>
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('estudiante')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
@@ -140,41 +142,48 @@
                 <h2 class="font-bold uppercase tracking-wider text-sm">Editar Perfil de Estudiante</h2>
                 <button onclick="closeModal('editar-estudiante')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Estudiante actualizado con éxito'); closeModal('editar-estudiante');">
+            <form class="p-6 space-y-4" id="form-editar-estudiante" method="POST" onsubmit="submitEditarEstudiante(event)">
+                {% csrf_token %}
+                <input type="hidden" id="estudiante-id-edit" name="estudiante_id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="matricula-edit">Matrícula</label>
-                        <input type="text" id="matricula-edit" value="18-0432" class="input-flat bg-gray-50" required readonly title="La matrícula no se puede cambiar">
+                        <input type="text" id="matricula-edit" class="input-flat bg-gray-50" required readonly title="La matrícula no se puede cambiar">
                     </div>
                     <div>
                         <label for="telefono-est-edit">Número de Teléfono</label>
-                        <input type="tel" id="telefono-est-edit" value="809-555-0123" class="input-flat" required>
+                        <input type="tel" id="telefono-est-edit" name="telefono" class="input-flat" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombres-est-edit">Nombres</label>
+                        <input type="text" id="nombres-est-edit" name="nombres" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="apellidos-est-edit">Apellidos</label>
+                        <input type="text" id="apellidos-est-edit" name="apellidos" class="input-flat" required>
                     </div>
                 </div>
                 <div>
-                    <label for="nombre-est-edit">Nombre Completo</label>
-                    <input type="text" id="nombre-est-edit" value="Juan Alberto Pérez" class="input-flat" required>
-                </div>
-                <div>
                     <label for="correo-est-edit">Correo Electrónico</label>
-                    <input type="email" id="correo-est-edit" value="18-0432@unphu.edu.do" class="input-flat" required>
+                    <input type="email" id="correo-est-edit" name="email" class="input-flat" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="carrera-edit">Carrera</label>
-                        <select id="carrera-edit" class="input-flat" required>
-                            <option value="sistemas" selected>Ingeniería de Sistemas</option>
-                            <option value="arquitectura">Arquitectura</option>
-                            <option value="derecho">Derecho</option>
-                            <option value="medicina">Medicina</option>
+                        <select id="carrera-edit" name="carrera" class="input-flat" required>
+                            {% for carrera in carreras %}
+                            <option value="{{ carrera.id }}">{{ carrera.nombre }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div>
                         <label for="estatus-edit">Estatus</label>
-                        <select id="estatus-edit" class="input-flat" required>
-                            <option value="activo" selected>Activo</option>
-                            <option value="tesis">En Tesis</option>
-                            <option value="inactivo">Inactivo</option>
+                        <select id="estatus-edit" name="estatus" class="input-flat" required>
+                            <option value="Activo">Activo</option>
+                            <option value="En Tesis">En Tesis</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
                 </div>
@@ -193,51 +202,55 @@
                 <h2 class="font-bold uppercase tracking-wider text-sm">Registro de Asesor / Jurado</h2>
                 <button onclick="closeModal('asesor')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Asesor registrado con éxito'); closeModal('asesor');">
+            <form class="p-6 space-y-4" method="POST" action="{% url 'registrar_asesor' %}">
+                {% csrf_token %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="id-empleado">Código de Empleado (ID)</label>
-                        <input type="text" id="id-empleado" placeholder="ej. EMP-2024" class="input-flat" required>
+                        <input type="text" id="id-empleado" name="codigo_empleado" placeholder="ej. EMP-2024" class="input-flat" required>
                     </div>
                     <div>
                         <label for="telefono-ase">Número de Teléfono</label>
-                        <input type="tel" id="telefono-ase" placeholder="829-000-0000" class="input-flat" required>
+                        <input type="tel" id="telefono-ase" name="telefono" placeholder="829-000-0000" class="input-flat" required>
                     </div>
                 </div>
-                <div>
-                    <label for="nombre-ase">Nombre Completo</label>
-                    <input type="text" id="nombre-ase" placeholder="Nombre Apellido" class="input-flat" required>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombre-ase">Nombres</label>
+                        <input type="text" id="nombre-ase" name="nombres" placeholder="Nombres" class="input-flat" required>
+                    </div>
+                    <div>
+                        <label for="apellidos-ase">Apellidos</label>
+                        <input type="text" id="apellidos-ase" name="apellidos" placeholder="Apellidos" class="input-flat" required>
+                    </div>
                 </div>
                 <div>
                     <label for="correo-ase">Correo Electrónico Institucional</label>
-                    <input type="email" id="correo-ase" placeholder="asesor@unphu.edu.do" class="input-flat" required>
+                    <input type="email" id="correo-ase" name="email" placeholder="asesor@unphu.edu.do" class="input-flat" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="facultad">Facultad</label>
-                        <select id="facultad" class="input-flat" required onchange="updateEspecialidades('facultad', 'especialidad')">
-                            <option value="">Seleccione Facultad...</option>
-                            <option value="fct">Ciencias y Tecnología</option>
-                            <option value="faa">Arquitectura y Artes</option>
-                            <option value="fcs">Ciencias de la Salud</option>
+                        <label for="especialidad">Especialidad</label>
+                        <select id="especialidad" name="especialidad" class="input-flat" required>
+                            <option value="">Seleccione Especialidad...</option>
+                            {% for esp in especialidades %}
+                            <option value="{{ esp.id }}">{{ esp.nombre }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div>
-                        <label for="especialidad">Departamento / Especialidad</label>
-                        <select id="especialidad" class="input-flat" required>
-                            <option value="">Seleccione primero la Facultad...</option>
+                        <label for="departamento">Departamento</label>
+                        <select id="departamento" name="departamento" class="input-flat" required>
+                            <option value="">Seleccione Departamento...</option>
+                            {% for depto in departamentos %}
+                            <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="disponibilidad">Máximo de Tesis (Cupo)</label>
-                        <input type="number" id="disponibilidad" min="1" max="10" value="5" class="input-flat" required>
-                    </div>
-                    <div>
-                        <label for="password-ase">Contraseña Inicial</label>
-                        <input type="password" id="password-ase" placeholder="••••••••" class="input-flat" required>
-                    </div>
+                <div>
+                    <label for="disponibilidad_max">Máximo de Tesis (Cupo)</label>
+                    <input type="number" id="disponibilidad_max" name="disponibilidad_max" min="1" max="10" value="5" class="input-flat" required>
                 </div>
                 <div class="pt-4 flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('asesor')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
@@ -254,52 +267,43 @@
                 <h2 class="font-bold uppercase tracking-wider text-sm">Editar Asesor / Jurado</h2>
                 <button onclick="closeModal('editar-asesor')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form class="p-6 space-y-4" onsubmit="event.preventDefault(); alert('Asesor actualizado con éxito'); closeModal('editar-asesor');">
+            <form class="p-6 space-y-4" id="form-editar-asesor" method="POST" onsubmit="submitEditarAsesor(event)">
+                {% csrf_token %}
+                <input type="hidden" id="asesor-id-edit" name="asesor_id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="id-empleado-edit">Código de Empleado (ID)</label>
-                        <input type="text" id="id-empleado-edit" value="EMP-9921" class="input-flat bg-gray-50" required readonly title="El código no se puede cambiar">
+                        <input type="text" id="id-empleado-edit" class="input-flat bg-gray-50" required readonly title="El código no se puede cambiar">
                     </div>
                     <div>
                         <label for="telefono-ase-edit">Número de Teléfono</label>
-                        <input type="tel" id="telefono-ase-edit" value="829-555-0101" class="input-flat" required>
+                        <input type="tel" id="telefono-ase-edit" name="telefono" class="input-flat" required>
                     </div>
-                </div>
-                <div>
-                    <label for="nombre-ase-edit">Nombre Completo</label>
-                    <input type="text" id="nombre-ase-edit" value="Ing. Roberto Gómez" class="input-flat" required>
-                </div>
-                <div>
-                    <label for="correo-ase-edit">Correo Electrónico Institucional</label>
-                    <input type="email" id="correo-ase-edit" value="rgomez@unphu.edu.do" class="input-flat" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="facultad-edit">Facultad</label>
-                        <select id="facultad-edit" class="input-flat" required onchange="updateEspecialidades('facultad-edit', 'especialidad-edit')">
-                            <option value="fct" selected>Ciencias y Tecnología</option>
-                            <option value="faa">Arquitectura y Artes</option>
-                            <option value="fcs">Ciencias de la Salud</option>
-                        </select>
+                        <label for="nombre-ase-edit">Nombres</label>
+                        <input type="text" id="nombre-ase-edit" name="nombres" class="input-flat" required>
                     </div>
                     <div>
-                        <label for="especialidad-edit">Departamento / Especialidad</label>
-                        <select id="especialidad-edit" class="input-flat" required>
-                            <option value="software" selected>Ingeniería de Software / Ciberseguridad</option>
-                            <option value="civil">Ingeniería Civil</option>
-                        </select>
+                        <label for="apellidos-ase-edit">Apellidos</label>
+                        <input type="text" id="apellidos-ase-edit" name="apellidos" class="input-flat" required>
                     </div>
+                </div>
+                <div>
+                    <label for="correo-ase-edit">Correo Electrónico Institucional</label>
+                    <input type="email" id="correo-ase-edit" name="email" class="input-flat" required>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="disponibilidad-edit">Máximo de Tesis (Cupo)</label>
-                        <input type="number" id="disponibilidad-edit" min="1" max="10" value="5" class="input-flat" required>
+                        <input type="number" id="disponibilidad-edit" name="disponibilidad_max" min="1" max="10" class="input-flat" required>
                     </div>
                     <div>
                         <label for="estado-ase-edit">Estatus</label>
-                        <select id="estado-ase-edit" class="input-flat" required>
-                            <option value="disponible" selected>Disponible</option>
-                            <option value="nodisponible">No Disponible</option>
+                        <select id="estado-ase-edit" name="disponibilidad" class="input-flat" required>
+                            <option value="Disponible">Disponible</option>
+                            <option value="No Disponible">No Disponible</option>
                         </select>
                     </div>
                 </div>
@@ -409,85 +413,54 @@
                 <h2 class="font-bold uppercase tracking-wider text-sm">Editar Registro de Tesis</h2>
                 <button onclick="closeModal('editar-tesis')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form class="p-6 space-y-5" onsubmit="event.preventDefault(); alert('Tesis actualizada con éxito'); closeModal('editar-tesis');">
+            <form class="p-6 space-y-5" id="form-editar-tesis" method="POST" onsubmit="submitEditarTesis(event)">
+                {% csrf_token %}
+                <input type="hidden" id="tesis-id-edit" name="tesis_id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="codigo-tesis-edit">Código Único</label>
-                        <input type="text" id="codigo-tesis-edit" value="T-2023-001" class="input-flat bg-gray-50" required readonly title="Código inmutable">
+                        <input type="text" id="codigo-tesis-edit" class="input-flat bg-gray-50" required readonly title="Código inmutable">
                     </div>
                     <div>
                         <label for="periodo-tesis-edit">Periodo Académico</label>
-                        <input type="text" id="periodo-tesis-edit" value="2024/2" class="input-flat" required>
+                        <input type="text" id="periodo-tesis-edit" name="periodo" class="input-flat" required>
                     </div>
                 </div>
                 
                 <div>
                     <label for="titulo-tesis-edit">Título de la Tesis</label>
-                    <input type="text" id="titulo-tesis-edit" value="Optimización de Redes Neuronales" class="input-flat" required>
+                    <input type="text" id="titulo-tesis-edit" name="titulo" class="input-flat" required>
                 </div>
 
-                <!-- MULTI ESTUDIANTE SECTION -->
-                <div class="p-4 bg-gray-50 border border-gray-200">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="!mb-0 text-gray-800">Estudiantes Asignados <span class="text-gray-400 font-normal text-[10px]">(Máx 4)</span></label>
-                        <button type="button" onclick="addStudentSelect('student-list-edit')" class="text-xs font-bold text-unphu hover:underline">+ Añadir Estudiante</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="asesor-tesis-edit">Profesor / Asesor</label>
+                        <select id="asesor-tesis-edit" name="asesor" class="input-flat" required>
+                            {% for asesor in asesores %}
+                            <option value="{{ asesor.id }}">{{ asesor.user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div id="student-list-edit" class="space-y-2">
-                        <!-- Estudiante 1 (Precargado) -->
-                        <div class="flex items-center space-x-2 student-select-group">
-                            <select class="input-flat flex-1" required>
-                                <option value="1" selected>Juan Alberto Pérez (18-0432)</option>
-                                <option value="2">María Fernanda Ruiz (19-1201)</option>
-                                <option value="3">Carlos Méndez (20-0912)</option>
-                                <option value="4">Laura Gómez (21-1100)</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label for="estado-tesis-edit">Estado</label>
+                        <select id="estado-tesis-edit" name="estado" class="input-flat" required>
+                            <option value="Borrador">Borrador</option>
+                            <option value="En Revisión">En Revisión</option>
+                            <option value="Aprobada">Aprobada</option>
+                            <option value="Finalizada">Finalizada</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="especialidad-tesis-edit">Especialidad Requerida</label>
-                        <select id="especialidad-tesis-edit" class="input-flat" required onchange="updateAsesores('especialidad-tesis-edit', 'asesor-tesis-edit')">
-                            <option value="software" selected>Ingeniería de Software / Ciberseguridad</option>
-                            <option value="civil">Ingeniería Civil</option>
-                            <option value="urb">Diseño Urbano</option>
-                            <option value="paisaje">Arquitectura Paisajista</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="asesor-tesis-edit">Profesor / Asesor</label>
-                        <select id="asesor-tesis-edit" class="input-flat" required>
-                            <option value="1" selected>Ing. Roberto Gómez (Disponible: 4)</option>
-                            <option value="3">Ing. Carlos Pérez (Disponible: 3)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label for="estado-tesis-edit">Estado</label>
-                        <select id="estado-tesis-edit" class="input-flat" required>
-                            <option value="borrador">Borrador</option>
-                            <option value="revision" selected>En Revisión</option>
-                            <option value="aprobada">Aprobada</option>
-                            <option value="finalizada">Finalizada</option>
-                        </select>
-                    </div>
-                    <div>
                         <label for="fecha-tesis-edit">Fecha de Entrega</label>
-                        <input type="date" id="fecha-tesis-edit" value="2024-11-15" class="input-flat" required>
+                        <input type="date" id="fecha-tesis-edit" name="fecha_limite" class="input-flat" required>
                     </div>
                     <div>
                         <label for="calificacion-tesis-edit">Calificación Final</label>
-                        <input type="number" id="calificacion-tesis-edit" min="0" max="100" placeholder="Ej. 95" class="input-flat">
+                        <input type="number" id="calificacion-tesis-edit" name="calificacion" min="0" max="100" placeholder="Ej. 95" class="input-flat">
                     </div>
-                </div>
-
-                <!-- FILE UPLOAD SECTION -->
-                <div class="border-t border-gray-200 pt-4">
-                    <label for="archivo-tesis-edit">Subir Nueva Versión (PDF) <span class="text-gray-400 font-normal text-[10px]">- Reemplaza el doc actual</span></label>
-                    <input type="file" id="archivo-tesis-edit" accept="application/pdf" class="input-flat py-1">
                 </div>
 
                 <div class="pt-4 flex justify-end space-x-3">
@@ -532,19 +505,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 text-center">
                     <div class="flat-card p-6 border-b-4 border-unphu">
                         <p class="text-xs text-gray-500 uppercase font-bold">Total Estudiantes</p>
-                        <p class="text-3xl font-black mt-2">1,240</p>
+                        <p class="text-3xl font-black mt-2">{{ total_estudiantes }}</p>
                     </div>
                     <div class="flat-card p-6 border-b-4 border-blue-500">
                         <p class="text-xs text-gray-500 uppercase font-bold">Asesores Activos</p>
-                        <p class="text-3xl font-black mt-2">86</p>
+                        <p class="text-3xl font-black mt-2">{{ total_asesores }}</p>
                     </div>
                     <div class="flat-card p-6 border-b-4 border-orange-500">
                         <p class="text-xs text-gray-500 uppercase font-bold">Tesis en Proceso</p>
-                        <p class="text-3xl font-black mt-2">142</p>
+                        <p class="text-3xl font-black mt-2">{{ tesis_en_proceso }}</p>
                     </div>
                     <div class="flat-card p-6 border-b-4 border-green-600">
                         <p class="text-xs text-gray-500 uppercase font-bold">Tesis Aprobadas</p>
-                        <p class="text-3xl font-black mt-2">56</p>
+                        <p class="text-3xl font-black mt-2">{{ tesis_aprobadas }}</p>
                     </div>
                 </div>
             </section>
@@ -572,24 +545,21 @@
                             </tr>
                         </thead>
                         <tbody class="text-sm">
+                            {% for estudiante in estudiantes %}
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-6 py-4 font-mono font-bold">18-0432</td>
-                                <td class="px-6 py-4">Juan Alberto Pérez</td>
-                                <td class="px-6 py-4 font-mono text-gray-600">809-555-0123</td>
-                                <td class="px-6 py-4">18-0432@unphu.edu.do</td>
-                                <td class="px-6 py-4 italic text-gray-500">Ing. de Sistemas</td>
-                                <td class="px-6 py-4"><span class="status-badge bg-green-100 text-green-700">Activo</span></td>
-                                <td class="px-6 py-4 text-right"><button onclick="openModal('editar-estudiante')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                <td class="px-6 py-4 font-mono font-bold">{{ estudiante.matricula }}</td>
+                                <td class="px-6 py-4">{{ estudiante.user.get_full_name }}</td>
+                                <td class="px-6 py-4 font-mono text-gray-600">{{ estudiante.telefono }}</td>
+                                <td class="px-6 py-4">{{ estudiante.correo_institucional }}</td>
+                                <td class="px-6 py-4 italic text-gray-500">{{ estudiante.carrera.nombre }}</td>
+                                <td class="px-6 py-4"><span class="status-badge {% if estudiante.estatus.nombre == 'Activo' %}bg-green-100 text-green-700{% else %}bg-orange-100 text-orange-700{% endif %}">{{ estudiante.estatus.nombre|default:"Activo" }}</span></td>
+                                <td class="px-6 py-4 text-right"><button onclick="editarEstudiante({{ estudiante.id }}, '{{ estudiante.matricula }}', '{{ estudiante.user.first_name }}', '{{ estudiante.user.last_name }}', '{{ estudiante.correo_institucional }}', '{{ estudiante.telefono }}', {{ estudiante.carrera.id }}, '{{ estudiante.estatus.nombre }}')" class="text-unphu font-bold hover:underline">Editar</button></td>
                             </tr>
-                            <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-6 py-4 font-mono font-bold">19-1201</td>
-                                <td class="px-6 py-4">María Fernanda Ruiz</td>
-                                <td class="px-6 py-4 font-mono text-gray-600">829-555-0456</td>
-                                <td class="px-6 py-4">19-1201@unphu.edu.do</td>
-                                <td class="px-6 py-4 italic text-gray-500">Arquitectura</td>
-                                <td class="px-6 py-4"><span class="status-badge bg-orange-100 text-orange-700">En Tesis</span></td>
-                                <td class="px-6 py-4 text-right"><button onclick="openModal('editar-estudiante')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                            {% empty %}
+                            <tr class="border-b border-gray-100">
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-400">No hay estudiantes registrados</td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -617,14 +587,22 @@
                             </tr>
                         </thead>
                         <tbody class="text-sm">
+                            {% for asesor in asesores %}
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-4 py-4 font-mono font-bold text-xs">EMP-9921</td>
-                                <td class="px-4 py-4">Ing. Roberto Gómez</td>
-                                <td class="px-4 py-4 font-mono text-xs text-gray-500">12/01/2023</td>
-                                <td class="px-4 py-4">Ciberseguridad</td>
-                                <td class="px-4 py-4 text-center font-bold text-gray-700">4 / 5</td>
-                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-asesor')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                <td class="px-4 py-4 font-mono font-bold text-xs">{{ asesor.codigo_empleado }}</td>
+                                <td class="px-4 py-4">{{ asesor.user.get_full_name }}</td>
+                                <td class="px-4 py-4 font-mono text-xs text-gray-500">{{ asesor.fecha_registro|date:"d/m/Y" }}</td>
+                                <td class="px-4 py-4">{{ asesor.especialidad.nombre }}</td>
+                                <td class="px-4 py-4 text-center font-bold text-gray-700">{{ asesor.tesis_asesoradas.all|length }} / {{ asesor.disponibilidad_max }}</td>
+                                <td class="px-4 py-4 text-right">
+                                    <button onclick="editarAsesor({{ asesor.id }}, '{{ asesor.codigo_empleado }}', '{{ asesor.user.first_name }}', '{{ asesor.user.last_name }}', '{{ asesor.correo_institucional }}', '{{ asesor.telefono }}', {{ asesor.disponibilidad_max }}, '{{ asesor.disponibilidad }}')" class="text-unphu font-bold hover:underline">Editar</button>
+                                </td>
                             </tr>
+                            {% empty %}
+                            <tr class="border-b border-gray-100">
+                                <td colspan="6" class="px-4 py-4 text-center text-gray-400">No hay asesores registrados</td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -653,19 +631,36 @@
                             </tr>
                         </thead>
                         <tbody class="text-sm">
+                            {% for tesis in tesis_list %}
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-4 py-4 font-mono font-bold text-xs">T-2023-001</td>
-                                <td class="px-4 py-4 leading-snug">Juan Pérez<br><span class="text-[10px] text-gray-400 font-bold">+ 1 compañero</span></td>
-                                <td class="px-4 py-4 max-w-[200px] truncate font-medium">Optimización de Redes Neuronales</td>
+                                <td class="px-4 py-4 font-mono font-bold text-xs">{{ tesis.codigo }}</td>
+                                <td class="px-4 py-4 leading-snug">
+                                    {% for est in tesis.estudiantes.all %}
+                                        {{ est.user.first_name }}{% if not forloop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                    {% if tesis.estudiantes.all|length > 1 %}<span class="text-[10px] text-gray-400 font-bold">+ {{ tesis.estudiantes.all|length|add:"-1" }} compañero(s)</span>{% endif %}
+                                </td>
+                                <td class="px-4 py-4 max-w-[200px] truncate font-medium">{{ tesis.titulo }}</td>
                                 <td class="px-4 py-4 text-center">
-                                    <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1" title="Descargar PDF">[PDF]</a>
+                                    {% if tesis.versiones.all|first %}
+                                    <a href="{% url 'descargar_pdf_tesis' tesis.id %}" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1" title="Descargar PDF">[PDF]</a>
+                                    {% else %}
+                                    <span class="text-xs text-gray-400">Sin PDF</span>
+                                    {% endif %}
                                 </td>
-                                <td class="px-4 py-4">Ing. Roberto Gómez</td>
+                                <td class="px-4 py-4">{{ tesis.asesor.user.get_full_name|default:"Sin Asesor" }}</td>
                                 <td class="px-4 py-4">
-                                    <span class="status-badge bg-blue-100 text-blue-800">En Revisión</span>
+                                    <span class="status-badge {% if tesis.estado.nombre == 'Aprobada' %}bg-green-100 text-green-800{% elif tesis.estado.nombre == 'Finalizada' %}bg-blue-100 text-blue-800{% elif tesis.estado.nombre == 'En Revisión' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">{{ tesis.estado.nombre }}</span>
                                 </td>
-                                <td class="px-4 py-4 text-right"><button onclick="openModal('editar-tesis')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                <td class="px-4 py-4 text-right">
+                                    <button onclick="editarTesis({{ tesis.id }}, '{{ tesis.codigo }}', '{{ tesis.titulo|escapejs }}', '{{ tesis.periodo }}', {{ tesis.asesor.id|default:'null' }}, '{{ tesis.estado.nombre }}', '{{ tesis.fecha_limite|date:'Y-m-d'|default:'' }}', {{ tesis.calificacion|default:'null' }})" class="text-unphu font-bold hover:underline">Editar</button>
+                                </td>
                             </tr>
+                            {% empty %}
+                            <tr class="border-b border-gray-100">
+                                <td colspan="7" class="px-4 py-4 text-center text-gray-400">No hay tesis registradas</td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -697,24 +692,21 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm">
+                                    {% for comentario in comentarios %}
                                     <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                        <td class="px-4 py-4 font-mono font-bold text-xs">C-2024-01</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">15/12/2024</td>
-                                        <td class="px-4 py-4 text-gray-700">La sección de metodología no especifica el tamaño de la muestra ni el método de muestreo utilizado.</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">14:30</td>
-                                        <td class="px-4 py-4 text-gray-800">Ing. Roberto Gómez</td>
-                                        <td class="px-4 py-4 font-mono font-bold text-xs text-unphu">T-2023-001</td>
-                                        <td class="px-4 py-4 italic text-gray-500">Ing. de Sistemas</td>
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">{{ comentario.codigo }}</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">{{ comentario.fecha|date:"d/m/Y" }}</td>
+                                        <td class="px-4 py-4 text-gray-700">{{ comentario.contenido|truncatewords:15 }}</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">{{ comentario.hora|time:"H:i" }}</td>
+                                        <td class="px-4 py-4 text-gray-800">{{ comentario.autor.get_full_name }}</td>
+                                        <td class="px-4 py-4 font-mono font-bold text-xs text-unphu">{{ comentario.tesis.codigo }}</td>
+                                        <td class="px-4 py-4 italic text-gray-500">{{ comentario.tesis.estudiantes.all|first|default:"Sin Estudiante" }}</td>
                                     </tr>
-                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                        <td class="px-4 py-4 font-mono font-bold text-xs">C-2024-02</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">16/12/2024</td>
-                                        <td class="px-4 py-4 text-gray-700">Se recomienda ampliar las fuentes bibliográficas con artículos de los últimos 5 años.</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">09:15</td>
-                                        <td class="px-4 py-4 text-gray-800">Dra. Elena Santos</td>
-                                        <td class="px-4 py-4 font-mono font-bold text-xs text-unphu">T-2023-042</td>
-                                        <td class="px-4 py-4 italic text-gray-500">Arquitectura</td>
+                                    {% empty %}
+                                    <tr class="border-b border-gray-100">
+                                        <td colspan="7" class="px-4 py-4 text-center text-gray-400">No hay comentarios registrados</td>
                                     </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -739,26 +731,24 @@
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm">
+                                    {% for version in versiones %}
                                     <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                        <td class="px-4 py-4 font-mono font-bold text-xs">HV-00001</td>
-                                        <td class="px-4 py-4 text-gray-600">Pantalla</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">10/12/2024</td>
+                                        <td class="px-4 py-4 font-mono font-bold text-xs">{{ version.codigo_version }}</td>
+                                        <td class="px-4 py-4 text-gray-600">Sistema</td>
+                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">{{ version.fecha|date:"d/m/Y" }}</td>
                                         <td class="px-4 py-4 text-center">
-                                            <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[DOCX]</a>
+                                            {% if version.archivo %}
+                                            <a href="{{ version.archivo.url }}" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1" target="_blank">[{{ version.archivo.name|upper|slice:"-3:" }}]</a>
+                                            {% endif %}
                                         </td>
-                                        <td class="px-4 py-4">Tesis Completa v1</td>
-                                        <td class="px-4 py-4">Juan Alberto Pérez</td>
+                                        <td class="px-4 py-4">{{ version.nombre_entregable }}</td>
+                                        <td class="px-4 py-4">{{ version.tesis.estudiantes.all|first|default:"Sin Estudiante" }}</td>
                                     </tr>
-                                    <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                        <td class="px-4 py-4 font-mono font-bold text-xs">HV-00002</td>
-                                        <td class="px-4 py-4 text-gray-600">Pantalla</td>
-                                        <td class="px-4 py-4 font-mono text-xs text-gray-500">14/12/2024</td>
-                                        <td class="px-4 py-4 text-center">
-                                            <a href="#" class="text-xs font-bold text-unphu hover:underline border border-unphu px-2 py-1">[PDF]</a>
-                                        </td>
-                                        <td class="px-4 py-4">Anexos y Planos v2</td>
-                                        <td class="px-4 py-4">María Fernanda Ruiz</td>
+                                    {% empty %}
+                                    <tr class="border-b border-gray-100">
+                                        <td colspan="6" class="px-4 py-4 text-center text-gray-400">No hay versiones registradas</td>
                                     </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -811,6 +801,219 @@
 
         function closeModal(type) {
             document.getElementById('modal-' + type).classList.add('hidden');
+        }
+
+        /**
+         * Función para editar un estudiante - llena el modal con datos dinámicos
+         */
+        function editarEstudiante(id, matricula, nombres, apellidos, email, telefono, carreraId, estatus) {
+            // Llenar campos del modal
+            document.getElementById('estudiante-id-edit').value = id;
+            document.getElementById('matricula-edit').value = matricula;
+            document.getElementById('nombres-est-edit').value = nombres;
+            document.getElementById('apellidos-est-edit').value = apellidos;
+            document.getElementById('correo-est-edit').value = email;
+            document.getElementById('telefono-est-edit').value = telefono;
+            document.getElementById('carrera-edit').value = carreraId;
+            document.getElementById('estatus-edit').value = estatus;
+            
+            // Abrir modal
+            openModal('editar-estudiante');
+        }
+
+        /**
+         * Función para enviar el formulario de editar estudiante
+         */
+        async function submitEditarEstudiante(event) {
+            event.preventDefault();
+            const estudianteId = document.getElementById('estudiante-id-edit').value;
+            const form = document.getElementById('form-editar-estudiante');
+            
+            if (!estudianteId) {
+                alert('Error: No se pudo identificar el estudiante a actualizar');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const url = `/admin/actualizar-estudiante/${estudianteId}/`;
+            
+            const options = {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: formData
+            };
+
+            console.log('Enviando fetch a:', url);
+            console.log('Opciones:', options);
+
+            try {
+                const response = await fetch(url, options);
+
+                // 1. Check if the response is actually OK
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server returned error status:', response.status);
+                    console.error('Error body:', errorText);
+                    alert('Error del servidor (status ' + response.status + '): ' + errorText.substring(0, 100));
+                    return;
+                }
+
+                // 2. Check if the content type is JSON before parsing
+                const contentType = response.headers.get("content-type");
+                console.log('Content-Type:', contentType);
+                
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    console.log('Datos recibidos:', data);
+                    
+                    if (data.success) {
+                        alert(data.message || 'Estudiante actualizado exitosamente');
+                        closeModal('editar-estudiante');
+                        location.reload();
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Expected JSON but got:', text.substring(0, 100));
+                    alert('El servidor no devolvió JSON. Revise la consola.');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Error al enviar el formulario: ' + error.message);
+            }
+        }
+
+        /**
+         * Función para editar un asesor - llena el modal con datos dinámicos
+         */
+        function editarAsesor(id, codigo, nombres, apellidos, email, telefono, disponibilidad_max, disponibilidad) {
+            document.getElementById('asesor-id-edit').value = id;
+            document.getElementById('id-empleado-edit').value = codigo;
+            document.getElementById('nombre-ase-edit').value = nombres;
+            document.getElementById('apellidos-ase-edit').value = apellidos;
+            document.getElementById('correo-ase-edit').value = email;
+            document.getElementById('telefono-ase-edit').value = telefono;
+            document.getElementById('disponibilidad-edit').value = disponibilidad_max;
+            document.getElementById('estado-ase-edit').value = disponibilidad;
+            
+            openModal('editar-asesor');
+        }
+
+        /**
+         * Función para enviar el formulario de editar asesor
+         */
+        async function submitEditarAsesor(event) {
+            event.preventDefault();
+            const asesorId = document.getElementById('asesor-id-edit').value;
+            const form = document.getElementById('form-editar-asesor');
+            
+            if (!asesorId) {
+                alert('Error: No se pudo identificar el asesor a actualizar');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const url = `/admin/actualizar-asesor/${asesorId}/`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert('Error del servidor: ' + errorText.substring(0, 100));
+                    return;
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert(data.message || 'Asesor actualizado exitosamente');
+                        closeModal('editar-asesor');
+                        location.reload();
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar el formulario: ' + error.message);
+            }
+        }
+
+        /**
+         * Función para editar una tesis - llena el modal con datos dinámicos
+         */
+        function editarTesis(id, codigo, titulo, periodo, asesor_id, estado, fecha_limite, calificacion) {
+            document.getElementById('tesis-id-edit').value = id;
+            document.getElementById('codigo-tesis-edit').value = codigo;
+            document.getElementById('titulo-tesis-edit').value = titulo;
+            document.getElementById('periodo-tesis-edit').value = periodo;
+            document.getElementById('asesor-tesis-edit').value = asesor_id;
+            document.getElementById('estado-tesis-edit').value = estado;
+            document.getElementById('fecha-tesis-edit').value = fecha_limite;
+            if (calificacion) document.getElementById('calificacion-tesis-edit').value = calificacion;
+            
+            openModal('editar-tesis');
+        }
+
+        /**
+         * Función para enviar el formulario de editar tesis
+         */
+        async function submitEditarTesis(event) {
+            event.preventDefault();
+            const tesisId = document.getElementById('tesis-id-edit').value;
+            const form = document.getElementById('form-editar-tesis');
+            
+            if (!tesisId) {
+                alert('Error: No se pudo identificar la tesis a actualizar');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const url = `/admin/actualizar-tesis/${tesisId}/`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert('Error del servidor: ' + errorText.substring(0, 100));
+                    return;
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert(data.message || 'Tesis actualizada exitosamente');
+                        closeModal('editar-tesis');
+                        location.reload();
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar el formulario: ' + error.message);
+            }
         }
 
         /**
