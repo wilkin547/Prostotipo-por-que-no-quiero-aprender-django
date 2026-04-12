@@ -12,7 +12,17 @@ from .views import (
     actualizar_asesor,
     registrar_tesis,
     actualizar_tesis,
-    descargar_pdf_tesis
+    descargar_pdf_tesis,
+    crear_facultad,
+    actualizar_facultad,
+    crear_departamento,
+    actualizar_departamento,
+    crear_carrera,
+    actualizar_carrera,
+    crear_especialidad,
+    actualizar_especialidad,
+    crear_estatus,
+    actualizar_estatus,
 )
 
 urlpatterns = [
@@ -38,4 +48,24 @@ urlpatterns = [
     path('admin/registrar-tesis/', registrar_tesis, name='registrar_tesis'),
     path('admin/actualizar-tesis/<int:tesis_id>/', actualizar_tesis, name='actualizar_tesis'),
     path('admin/descargar-pdf/<int:tesis_id>/', descargar_pdf_tesis, name='descargar_pdf_tesis'),
+    
+    # Funciones de Configuración - Facultades
+    path('admin/crear-facultad/', crear_facultad, name='crear_facultad'),
+    path('admin/actualizar-facultad/<int:facultad_id>/', actualizar_facultad, name='actualizar_facultad'),
+    
+    # Funciones de Configuración - Departamentos
+    path('admin/crear-departamento/', crear_departamento, name='crear_departamento'),
+    path('admin/actualizar-departamento/<int:departamento_id>/', actualizar_departamento, name='actualizar_departamento'),
+    
+    # Funciones de Configuración - Carreras
+    path('admin/crear-carrera/', crear_carrera, name='crear_carrera'),
+    path('admin/actualizar-carrera/<int:carrera_id>/', actualizar_carrera, name='actualizar_carrera'),
+    
+    # Funciones de Configuración - Especialidades
+    path('admin/crear-especialidad/', crear_especialidad, name='crear_especialidad'),
+    path('admin/actualizar-especialidad/<int:especialidad_id>/', actualizar_especialidad, name='actualizar_especialidad'),
+    
+    # Funciones de Configuración - Estatus
+    path('admin/crear-estatus/', crear_estatus, name='crear_estatus'),
+    path('admin/actualizar-estatus/<int:estatus_id>/', actualizar_estatus, name='actualizar_estatus'),
 ]

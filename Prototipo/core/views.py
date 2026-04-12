@@ -59,6 +59,7 @@ def admin_dashboard(request):
         'facultades': Facultad.objects.all(),
         'departamentos': Departamento.objects.all(),
         'especialidades': Especialidad.objects.all(),
+        'estatus': Estatus.objects.all(),
     }
     return render(request, 'administrador.html', context)
 
@@ -449,3 +450,152 @@ def descargar_pdf_tesis(request, tesis_id):
             return JsonResponse({'error': 'No hay versión disponible para descargar'}, status=404)
     except Tesis.DoesNotExist:
         return JsonResponse({'error': 'Tesis no encontrada'}, status=404)
+
+# 6. VISTAS DE CONFIGURACIÓN - Gestión de Catálogos
+
+@staff_member_required
+def crear_facultad(request):
+    """Crea una nueva facultad"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            Facultad.objects.create(nombre=nombre)
+            return JsonResponse({'success': True, 'message': 'Facultad creada exitosamente'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def actualizar_facultad(request, facultad_id):
+    """Actualiza una facultad"""
+    if request.method == 'POST':
+        try:
+            facultad = Facultad.objects.get(id=facultad_id)
+            nombre = request.POST.get('nombre')
+            if nombre:
+                facultad.nombre = nombre
+                facultad.save()
+                return JsonResponse({'success': True, 'message': 'Facultad actualizada exitosamente'})
+        except Facultad.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Facultad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def crear_departamento(request):
+    """Crea un nuevo departamento"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        facultad_id = request.POST.get('facultad')
+        if nombre and facultad_id:
+            try:
+                facultad = Facultad.objects.get(id=facultad_id)
+                Departamento.objects.create(nombre=nombre, facultad=facultad)
+                return JsonResponse({'success': True, 'message': 'Departamento creado exitosamente'})
+            except Facultad.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Facultad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def actualizar_departamento(request, departamento_id):
+    """Actualiza un departamento"""
+    if request.method == 'POST':
+        try:
+            depto = Departamento.objects.get(id=departamento_id)
+            nombre = request.POST.get('nombre')
+            facultad_id = request.POST.get('facultad')
+            if nombre:
+                depto.nombre = nombre
+            if facultad_id:
+                facultad = Facultad.objects.get(id=facultad_id)
+                depto.facultad = facultad
+            depto.save()
+            return JsonResponse({'success': True, 'message': 'Departamento actualizado exitosamente'})
+        except Departamento.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Departamento no encontrado'}, status=404)
+        except Facultad.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Facultad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def crear_carrera(request):
+    """Crea una nueva carrera"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        facultad_id = request.POST.get('facultad')
+        if nombre and facultad_id:
+            try:
+                facultad = Facultad.objects.get(id=facultad_id)
+                Carrera.objects.create(nombre=nombre, facultad=facultad)
+                return JsonResponse({'success': True, 'message': 'Carrera creada exitosamente'})
+            except Facultad.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Facultad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def actualizar_carrera(request, carrera_id):
+    """Actualiza una carrera"""
+    if request.method == 'POST':
+        try:
+            carrera = Carrera.objects.get(id=carrera_id)
+            nombre = request.POST.get('nombre')
+            facultad_id = request.POST.get('facultad')
+            if nombre:
+                carrera.nombre = nombre
+            if facultad_id:
+                facultad = Facultad.objects.get(id=facultad_id)
+                carrera.facultad = facultad
+            carrera.save()
+            return JsonResponse({'success': True, 'message': 'Carrera actualizada exitosamente'})
+        except Carrera.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Carrera no encontrada'}, status=404)
+        except Facultad.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Facultad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def crear_especialidad(request):
+    """Crea una nueva especialidad"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            Especialidad.objects.create(nombre=nombre)
+            return JsonResponse({'success': True, 'message': 'Especialidad creada exitosamente'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def actualizar_especialidad(request, especialidad_id):
+    """Actualiza una especialidad"""
+    if request.method == 'POST':
+        try:
+            esp = Especialidad.objects.get(id=especialidad_id)
+            nombre = request.POST.get('nombre')
+            if nombre:
+                esp.nombre = nombre
+                esp.save()
+                return JsonResponse({'success': True, 'message': 'Especialidad actualizada exitosamente'})
+        except Especialidad.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Especialidad no encontrada'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def crear_estatus(request):
+    """Crea un nuevo estado/estatus"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            Estatus.objects.create(nombre=nombre)
+            return JsonResponse({'success': True, 'message': 'Estatus creado exitosamente'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@staff_member_required
+def actualizar_estatus(request, estatus_id):
+    """Actualiza un estatus"""
+    if request.method == 'POST':
+        try:
+            estatus = Estatus.objects.get(id=estatus_id)
+            nombre = request.POST.get('nombre')
+            if nombre:
+                estatus.nombre = nombre
+                estatus.save()
+                return JsonResponse({'success': True, 'message': 'Estatus actualizado exitosamente'})
+        except Estatus.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Estatus no encontrado'}, status=404)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)

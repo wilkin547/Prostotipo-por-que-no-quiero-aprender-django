@@ -471,6 +471,40 @@
         </div>
     </div>
 
+    <!-- Modal: Configuración (Genérico) -->
+    <div id="modal-config" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg flat-card no-shadow overflow-hidden my-auto">
+            <div class="bg-unphu p-4 text-white flex justify-between items-center">
+                <h2 id="config-form-title" class="font-bold uppercase tracking-wider text-sm">Configuración</h2>
+                <button onclick="document.getElementById('modal-config').classList.add('hidden')" class="text-2xl hover:opacity-70">&times;</button>
+            </div>
+            <form id="config-form" class="p-6 space-y-4" data-config-type="" onsubmit="submitConfig(event)">
+                {% csrf_token %}
+                <input type="hidden" id="config-id" name="config-id">
+                
+                <div>
+                    <label for="config-nombre">Nombre</label>
+                    <input type="text" id="config-nombre" name="nombre" class="input-flat" required>
+                </div>
+                
+                <div id="config-facultad-group" class="hidden">
+                    <label for="config-facultad">Facultad</label>
+                    <select id="config-facultad" name="facultad" class="input-flat" required>
+                        <option value="">Seleccione una facultad...</option>
+                        {% for facultad in facultades %}
+                        <option value="{{ facultad.id }}">{{ facultad.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="document.getElementById('modal-config').classList.add('hidden')" class="px-6 py-2 text-xs font-bold uppercase text-gray-500 hover:bg-gray-100 transition">Cancelar</button>
+                    <button type="submit" class="bg-unphu text-white px-6 py-2 text-xs font-bold uppercase hover:bg-green-800 transition">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Navegación Superior -->
     <nav class="bg-unphu text-white px-6 py-4 flex justify-between items-center no-shadow sticky top-0 z-50">
         <div class="flex items-center space-x-4">
@@ -491,6 +525,7 @@
             <button onclick="showPage('asesores')" id="btn-asesores" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">ASESORES</button>
             <button onclick="showPage('tesis')" id="btn-tesis" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">REPOSITORIO TESIS</button>
             <button onclick="showPage('reportes')" id="btn-reportes" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">REPORTES</button>
+            <button onclick="showPage('configuracion')" id="btn-configuracion" class="nav-btn w-full text-left px-4 py-3 text-sm font-bold text-gray-600 hover:bg-gray-50 transition">⚙️ CONFIGURACIÓN</button>
         </aside>
 
         <!-- Contenedor Dinámico -->
@@ -752,6 +787,176 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PÁGINA: CONFIGURACIÓN -->
+            <section id="page-configuracion" class="content-page hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Configuración del Sistema</h1>
+                </div>
+
+                <!-- Tabs de Configuración -->
+                <div class="flex space-x-2 mb-6 border-b border-gray-200 pb-3">
+                    <button onclick="switchConfigTab('facultades')" id="tab-facultades" class="px-4 py-2 text-sm font-bold text-unphu border-b-2 border-unphu bg-white">Facultades</button>
+                    <button onclick="switchConfigTab('departamentos')" id="tab-departamentos" class="px-4 py-2 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:border-gray-300">Departamentos</button>
+                    <button onclick="switchConfigTab('carreras')" id="tab-carreras" class="px-4 py-2 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:border-gray-300">Carreras</button>
+                    <button onclick="switchConfigTab('especialidades')" id="tab-especialidades" class="px-4 py-2 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:border-gray-300">Especialidades</button>
+                    <button onclick="switchConfigTab('estatus')" id="tab-estatus" class="px-4 py-2 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:border-gray-300">Estados</button>
+                </div>
+
+                <!-- TAB: Facultades -->
+                <div id="config-facultades" class="config-tab">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Gestión de Facultades</h2>
+                        <button onclick="openConfigModal('facultad')" class="bg-unphu text-white px-4 py-2 text-xs font-bold uppercase hover:bg-green-800">+ Nueva Facultad</button>
+                    </div>
+                    <div class="flat-card overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">ID</th>
+                                    <th class="px-4 py-3 border-b">Nombre</th>
+                                    <th class="px-4 py-3 border-b text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for facultad in facultades %}
+                                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                    <td class="px-4 py-4 font-mono font-bold text-xs">{{ facultad.id }}</td>
+                                    <td class="px-4 py-4">{{ facultad.nombre }}</td>
+                                    <td class="px-4 py-4 text-right"><button onclick="editarConfiguracion('facultad', {{ facultad.id }}, '{{ facultad.nombre }}')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-400">No hay facultades registradas</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Departamentos -->
+                <div id="config-departamentos" class="config-tab hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Gestión de Departamentos</h2>
+                        <button onclick="openConfigModal('departamento')" class="bg-unphu text-white px-4 py-2 text-xs font-bold uppercase hover:bg-green-800">+ Nuevo Departamento</button>
+                    </div>
+                    <div class="flat-card overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">ID</th>
+                                    <th class="px-4 py-3 border-b">Nombre</th>
+                                    <th class="px-4 py-3 border-b">Facultad</th>
+                                    <th class="px-4 py-3 border-b text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for depto in departamentos %}
+                                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                    <td class="px-4 py-4 font-mono font-bold text-xs">{{ depto.id }}</td>
+                                    <td class="px-4 py-4">{{ depto.nombre }}</td>
+                                    <td class="px-4 py-4">{{ depto.facultad.nombre }}</td>
+                                    <td class="px-4 py-4 text-right"><button onclick="editarConfiguracion('departamento', {{ depto.id }}, '{{ depto.nombre }}', {{ depto.facultad.id }})" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">No hay departamentos registrados</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Carreras -->
+                <div id="config-carreras" class="config-tab hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Gestión de Carreras</h2>
+                        <button onclick="openConfigModal('carrera')" class="bg-unphu text-white px-4 py-2 text-xs font-bold uppercase hover:bg-green-800">+ Nueva Carrera</button>
+                    </div>
+                    <div class="flat-card overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">ID</th>
+                                    <th class="px-4 py-3 border-b">Nombre</th>
+                                    <th class="px-4 py-3 border-b">Facultad</th>
+                                    <th class="px-4 py-3 border-b text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for carrera in carreras %}
+                                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                    <td class="px-4 py-4 font-mono font-bold text-xs">{{ carrera.id }}</td>
+                                    <td class="px-4 py-4">{{ carrera.nombre }}</td>
+                                    <td class="px-4 py-4">{{ carrera.facultad.nombre }}</td>
+                                    <td class="px-4 py-4 text-right"><button onclick="editarConfiguracion('carrera', {{ carrera.id }}, '{{ carrera.nombre }}', {{ carrera.facultad.id }})" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="px-4 py-4 text-center text-gray-400">No hay carreras registradas</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Especialidades -->
+                <div id="config-especialidades" class="config-tab hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Gestión de Especialidades</h2>
+                        <button onclick="openConfigModal('especialidad')" class="bg-unphu text-white px-4 py-2 text-xs font-bold uppercase hover:bg-green-800">+ Nueva Especialidad</button>
+                    </div>
+                    <div class="flat-card overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">ID</th>
+                                    <th class="px-4 py-3 border-b">Nombre</th>
+                                    <th class="px-4 py-3 border-b text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for esp in especialidades %}
+                                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                    <td class="px-4 py-4 font-mono font-bold text-xs">{{ esp.id }}</td>
+                                    <td class="px-4 py-4">{{ esp.nombre }}</td>
+                                    <td class="px-4 py-4 text-right"><button onclick="editarConfiguracion('especialidad', {{ esp.id }}, '{{ esp.nombre }}')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-400">No hay especialidades registradas</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Estados -->
+                <div id="config-estatus" class="config-tab hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Gestión de Estados del Sistema</h2>
+                        <button onclick="openConfigModal('estatus')" class="bg-unphu text-white px-4 py-2 text-xs font-bold uppercase hover:bg-green-800">+ Nuevo Estado</button>
+                    </div>
+                    <div class="flat-card overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 text-[10px] uppercase font-black text-gray-500">
+                                <tr>
+                                    <th class="px-4 py-3 border-b">ID</th>
+                                    <th class="px-4 py-3 border-b">Nombre</th>
+                                    <th class="px-4 py-3 border-b text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for est in estatus %}
+                                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                    <td class="px-4 py-4 font-mono font-bold text-xs">{{ est.id }}</td>
+                                    <td class="px-4 py-4">{{ est.nombre }}</td>
+                                    <td class="px-4 py-4 text-right"><button onclick="editarConfiguracion('estatus', {{ est.id }}, '{{ est.nombre }}')" class="text-unphu font-bold hover:underline">Editar</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="px-4 py-4 text-center text-gray-400">No hay estados registrados</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -1035,6 +1240,153 @@
             if(activeBtn) {
                 activeBtn.classList.add('nav-link-active');
                 activeBtn.classList.remove('text-gray-600');
+            }
+        }
+
+        /**
+         * Función para cambiar entre tabs de configuración
+         */
+        function switchConfigTab(tabName) {
+            document.querySelectorAll('.config-tab').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById('config-' + tabName).classList.remove('hidden');
+
+            document.querySelectorAll('#page-configuracion button[onclick*="switchConfigTab"]').forEach(btn => {
+                btn.classList.remove('border-unphu', 'text-unphu');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+
+            document.getElementById('tab-' + tabName).classList.add('border-unphu', 'text-unphu');
+            document.getElementById('tab-' + tabName).classList.remove('border-transparent', 'text-gray-600');
+        }
+
+        /**
+         * Abrir modal de configuración
+         */
+        function openConfigModal(type) {
+            document.getElementById('config-form').dataset.configType = type;
+            document.getElementById('config-id').value = '';
+            document.getElementById('config-nombre').value = '';
+            document.getElementById('config-facultad').value = '';
+            
+            // Mostrar/ocultar campo de facultad según el tipo
+            if (['departamento', 'carrera'].includes(type)) {
+                document.getElementById('config-facultad-group').classList.remove('hidden');
+            } else {
+                document.getElementById('config-facultad-group').classList.add('hidden');
+            }
+            
+            // Actualizar título según el tipo
+            const titles = {
+                'facultad': 'Nueva Facultad',
+                'departamento': 'Nuevo Departamento',
+                'carrera': 'Nueva Carrera',
+                'especialidad': 'Nueva Especialidad',
+                'estatus': 'Nuevo Estado'
+            };
+            document.getElementById('config-form-title').textContent = titles[type] || 'Nuevo Ítem';
+            document.getElementById('modal-config').classList.remove('hidden');
+        }
+
+        /**
+         * Editar categoría (facultad, departamento, etc)
+         */
+        function editarConfiguracion(type, id, nombre, facultadId = null) {
+            document.getElementById('config-form').dataset.configType = type;
+            document.getElementById('config-id').value = id;
+            document.getElementById('config-nombre').value = nombre;
+            
+            // Mostrar/ocultar campo de facultad según el tipo
+            if (['departamento', 'carrera'].includes(type)) {
+                document.getElementById('config-facultad-group').classList.remove('hidden');
+                if (facultadId) {
+                    document.getElementById('config-facultad').value = facultadId;
+                }
+            } else {
+                document.getElementById('config-facultad-group').classList.add('hidden');
+            }
+            
+            // Actualizar título según el tipo
+            const titles = {
+                'facultad': 'Editar Facultad',
+                'departamento': 'Editar Departamento',
+                'carrera': 'Editar Carrera',
+                'especialidad': 'Editar Especialidad',
+                'estatus': 'Editar Estado'
+            };
+            document.getElementById('config-form-title').textContent = titles[type] || 'Editar Ítem';
+            document.getElementById('modal-config').classList.remove('hidden');
+        }
+
+        /**
+         * Función unificada para submit de configuración
+         */
+        async function submitConfig(event) {
+            event.preventDefault();
+            
+            const configType = document.getElementById('config-form').dataset.configType;
+            const id = document.getElementById('config-id').value;
+            const nombre = document.getElementById('config-nombre').value;
+            const facultad = document.getElementById('config-facultad').value;
+            
+            if (!nombre) {
+                alert('Por favor llena todos los campos requeridos');
+                return;
+            }
+            
+            // Determinar la URL según el tipo
+            let url;
+            if (id) {
+                const urls = {
+                    'facultad': `/admin/actualizar-facultad/${id}/`,
+                    'departamento': `/admin/actualizar-departamento/${id}/`,
+                    'carrera': `/admin/actualizar-carrera/${id}/`,
+                    'especialidad': `/admin/actualizar-especialidad/${id}/`,
+                    'estatus': `/admin/actualizar-estatus/${id}/`
+                };
+                url = urls[configType];
+            } else {
+                const urls = {
+                    'facultad': '/admin/crear-facultad/',
+                    'departamento': '/admin/crear-departamento/',
+                    'carrera': '/admin/crear-carrera/',
+                    'especialidad': '/admin/crear-especialidad/',
+                    'estatus': '/admin/crear-estatus/'
+                };
+                url = urls[configType];
+            }
+            
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            if (facultad) {
+                formData.append('facultad', facultad);
+            }
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            
+            try {
+                console.log('Enviando a:', url);
+                console.log('Datos:', { nombre, facultad });
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Respuesta status:', response.status);
+                const data = await response.json();
+                console.log('Datos respuesta:', data);
+                
+                if (data.success) {
+                    alert(data.message);
+                    document.getElementById('modal-config').classList.add('hidden');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar: ' + error.message);
             }
         }
 
