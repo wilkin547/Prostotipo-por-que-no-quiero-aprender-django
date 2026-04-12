@@ -478,18 +478,19 @@
                 <h2 id="config-form-title" class="font-bold uppercase tracking-wider text-sm">Configuración</h2>
                 <button onclick="document.getElementById('modal-config').classList.add('hidden')" class="text-2xl hover:opacity-70">&times;</button>
             </div>
-            <form id="config-form" class="p-6 space-y-4" data-config-type="" onsubmit="submitConfig(event)">
+            <form id="config-form" class="p-6 space-y-4" onsubmit="submitConfig(event)">
                 {% csrf_token %}
-                <input type="hidden" id="config-id" name="config-id">
+                <input type="hidden" id="config-type">
+                <input type="hidden" id="config-id">
                 
                 <div>
                     <label for="config-nombre">Nombre</label>
-                    <input type="text" id="config-nombre" name="nombre" class="input-flat" required>
+                    <input type="text" id="config-nombre" class="input-flat" required>
                 </div>
                 
                 <div id="config-facultad-group" class="hidden">
                     <label for="config-facultad">Facultad</label>
-                    <select id="config-facultad" name="facultad" class="input-flat" required>
+                    <select id="config-facultad" class="input-flat" required>
                         <option value="">Seleccione una facultad...</option>
                         {% for facultad in facultades %}
                         <option value="{{ facultad.id }}">{{ facultad.nombre }}</option>
@@ -1265,27 +1266,27 @@
          * Abrir modal de configuración
          */
         function openConfigModal(type) {
-            document.getElementById('config-form').dataset.configType = type;
-            document.getElementById('config-id').value = '';
+            document.getElementById('config-type').value = type;
             document.getElementById('config-nombre').value = '';
             document.getElementById('config-facultad').value = '';
+            document.getElementById('config-id').value = '';
             
-            // Mostrar/ocultar campo de facultad según el tipo
-            if (['departamento', 'carrera'].includes(type)) {
+            if (type === 'facultad') {
+                document.getElementById('config-form-title').textContent = 'Nueva Facultad';
+                document.getElementById('config-facultad-group').classList.add('hidden');
+            } else if (type === 'departamento') {
+                document.getElementById('config-form-title').textContent = 'Nuevo Departamento';
                 document.getElementById('config-facultad-group').classList.remove('hidden');
-            } else {
+            } else if (type === 'carrera') {
+                document.getElementById('config-form-title').textContent = 'Nueva Carrera';
+                document.getElementById('config-facultad-group').classList.remove('hidden');
+            } else if (type === 'especialidad') {
+                document.getElementById('config-form-title').textContent = 'Nueva Especialidad';
+                document.getElementById('config-facultad-group').classList.add('hidden');
+            } else if (type === 'estatus') {
+                document.getElementById('config-form-title').textContent = 'Nuevo Estado';
                 document.getElementById('config-facultad-group').classList.add('hidden');
             }
-            
-            // Actualizar título según el tipo
-            const titles = {
-                'facultad': 'Nueva Facultad',
-                'departamento': 'Nuevo Departamento',
-                'carrera': 'Nueva Carrera',
-                'especialidad': 'Nueva Especialidad',
-                'estatus': 'Nuevo Estado'
-            };
-            document.getElementById('config-form-title').textContent = titles[type] || 'Nuevo Ítem';
             document.getElementById('modal-config').classList.remove('hidden');
         }
 
@@ -1293,100 +1294,94 @@
          * Editar categoría (facultad, departamento, etc)
          */
         function editarConfiguracion(type, id, nombre, facultadId = null) {
-            document.getElementById('config-form').dataset.configType = type;
+            document.getElementById('config-type').value = type;
             document.getElementById('config-id').value = id;
             document.getElementById('config-nombre').value = nombre;
             
-            // Mostrar/ocultar campo de facultad según el tipo
-            if (['departamento', 'carrera'].includes(type)) {
+            if (facultadId) {
+                document.getElementById('config-facultad').value = facultadId;
                 document.getElementById('config-facultad-group').classList.remove('hidden');
-                if (facultadId) {
-                    document.getElementById('config-facultad').value = facultadId;
-                }
             } else {
                 document.getElementById('config-facultad-group').classList.add('hidden');
             }
-            
-            // Actualizar título según el tipo
-            const titles = {
-                'facultad': 'Editar Facultad',
-                'departamento': 'Editar Departamento',
-                'carrera': 'Editar Carrera',
-                'especialidad': 'Editar Especialidad',
-                'estatus': 'Editar Estado'
-            };
-            document.getElementById('config-form-title').textContent = titles[type] || 'Editar Ítem';
+
+            if (type === 'facultad') {
+                document.getElementById('config-form-title').textContent = 'Editar Facultad';
+            } else if (type === 'departamento') {
+                document.getElementById('config-form-title').textContent = 'Editar Departamento';
+            } else if (type === 'carrera') {
+                document.getElementById('config-form-title').textContent = 'Editar Carrera';
+            } else if (type === 'especialidad') {
+                document.getElementById('config-form-title').textContent = 'Editar Especialidad';
+            } else if (type === 'estatus') {
+                document.getElementById('config-form-title').textContent = 'Editar Estado';
+            }
+
             document.getElementById('modal-config').classList.remove('hidden');
         }
 
         /**
-         * Función unificada para submit de configuración
+         * Submit Genérico para Configuración
          */
-        async function submitConfig(event) {
-            event.preventDefault();
+        async function submitConfig(e) {
+            e.preventDefault();
             
-            const configType = document.getElementById('config-form').dataset.configType;
+            const type = document.getElementById('config-type').value;
             const id = document.getElementById('config-id').value;
             const nombre = document.getElementById('config-nombre').value;
             const facultad = document.getElementById('config-facultad').value;
             
-            if (!nombre) {
-                alert('Por favor llena todos los campos requeridos');
-                return;
-            }
-            
-            // Determinar la URL según el tipo
-            let url;
-            if (id) {
-                const urls = {
-                    'facultad': `/admin/actualizar-facultad/${id}/`,
-                    'departamento': `/admin/actualizar-departamento/${id}/`,
-                    'carrera': `/admin/actualizar-carrera/${id}/`,
-                    'especialidad': `/admin/actualizar-especialidad/${id}/`,
-                    'estatus': `/admin/actualizar-estatus/${id}/`
-                };
-                url = urls[configType];
-            } else {
-                const urls = {
-                    'facultad': '/admin/crear-facultad/',
-                    'departamento': '/admin/crear-departamento/',
-                    'carrera': '/admin/crear-carrera/',
-                    'especialidad': '/admin/crear-especialidad/',
-                    'estatus': '/admin/crear-estatus/'
-                };
-                url = urls[configType];
-            }
-            
+            let url = '';
             const formData = new FormData();
             formData.append('nombre', nombre);
-            if (facultad) {
-                formData.append('facultad', facultad);
-            }
             formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
             
+            // Determinar URL según tipo
+            switch(type) {
+                case 'facultad':
+                    url = id ? `/admin/actualizar-facultad/${id}/` : '/admin/crear-facultad/';
+                    break;
+                case 'departamento':
+                    url = id ? `/admin/actualizar-departamento/${id}/` : '/admin/crear-departamento/';
+                    formData.append('facultad', facultad);
+                    break;
+                case 'carrera':
+                    url = id ? `/admin/actualizar-carrera/${id}/` : '/admin/crear-carrera/';
+                    formData.append('facultad', facultad);
+                    break;
+                case 'especialidad':
+                    url = id ? `/admin/actualizar-especialidad/${id}/` : '/admin/crear-especialidad/';
+                    break;
+                case 'estatus':
+                    url = id ? `/admin/actualizar-estatus/${id}/` : '/admin/crear-estatus/';
+                    break;
+                default:
+                    alert('Tipo no válido');
+                    return;
+            }
+            
+            console.log('Enviando a:', url);
+            console.log('Datos:', formData);
+            
             try {
-                console.log('Enviando a:', url);
-                console.log('Datos:', { nombre, facultad });
-                
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
                 });
                 
-                console.log('Respuesta status:', response.status);
                 const data = await response.json();
-                console.log('Datos respuesta:', data);
+                console.log('Respuesta:', data);
                 
                 if (data.success) {
                     alert(data.message);
                     document.getElementById('modal-config').classList.add('hidden');
                     location.reload();
                 } else {
-                    alert('Error: ' + data.error);
+                    alert('Error: ' + (data.error || 'Error desconocido'));
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al enviar: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
